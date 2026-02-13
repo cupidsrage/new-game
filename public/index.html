@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archmage: Real-Time Strategy MMO</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <h1>⚔️ Archmage ⚔️</h1>
+            <p class="subtitle">Real-Time Strategy MMO</p>
+            
+            <div id="loginForm" class="form-container">
+                <h2>Login</h2>
+                <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
+                <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+                <button onclick="login()">Login</button>
+                <p class="switch-form">Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+            </div>
+
+            <div id="registerForm" class="form-container hidden">
+                <h2>Register</h2>
+                <input type="text" id="registerUsername" placeholder="Username" autocomplete="username">
+                <input type="email" id="registerEmail" placeholder="Email (optional)" autocomplete="email">
+                <input type="password" id="registerPassword" placeholder="Password" autocomplete="new-password">
+                <button onclick="register()">Register</button>
+                <p class="switch-form">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            </div>
+
+            <div id="loginError" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="gameScreen" class="screen">
+        <header class="game-header">
+            <div class="player-info">
+                <h1 id="playerName">Kingdom</h1>
+                <span id="playerLevel" class="level-badge">Lvl 1</span>
+            </div>
+            <div class="resources">
+                <div class="resource gold">
+                    <span class="icon">💰</span>
+                    <span id="goldAmount">0</span>
+                    <span class="rate" id="goldRate">+0/s</span>
+                </div>
+                <div class="resource mana">
+                    <span class="icon">✨</span>
+                    <span id="manaAmount">0</span>
+                    <span class="rate" id="manaRate">+0/s</span>
+                </div>
+                <div class="resource population">
+                    <span class="icon">👥</span>
+                    <span id="populationAmount">0</span>
+                    <span class="rate" id="populationRate">+0/s</span>
+                </div>
+                <div class="resource land">
+                    <span class="icon">🏞️</span>
+                    <span id="landAmount">0</span>
+                </div>
+            </div>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </header>
+
+        <div class="game-container">
+            <nav class="game-tabs">
+                <button class="tab-btn active" onclick="showTab('kingdom')">🏰 Kingdom</button>
+                <button class="tab-btn" onclick="showTab('military')">⚔️ Military</button>
+                <button class="tab-btn" onclick="showTab('magic')">🔮 Magic</button>
+                <button class="tab-btn" onclick="showTab('heroes')">🦸 Heroes</button>
+                <button class="tab-btn" onclick="showTab('market')">🏪 Market</button>
+                <button class="tab-btn" onclick="showTab('combat')">⚔️ Combat</button>
+                <button class="tab-btn" onclick="showTab('leaderboard')">🏆 Leaderboard</button>
+            </nav>
+
+            <div class="content-area">
+                <!-- Kingdom Tab -->
+                <div id="kingdomTab" class="tab-content active">
+                    <h2>Kingdom Management</h2>
+                    
+                    <div class="section">
+                        <h3>Expand Territory</h3>
+                        <button onclick="expandLand(1)">Expand Land (+1) - <span id="landCost">1000</span> gold</button>
+                        <button onclick="expandLand(10)">Expand Land (+10)</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Buildings</h3>
+                        <div id="buildingsList" class="grid"></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Building Queue</h3>
+                        <div id="buildingQueue" class="queue-list"></div>
+                    </div>
+                </div>
+
+                <!-- Military Tab -->
+                <div id="militaryTab" class="tab-content">
+                    <h2>Military Forces</h2>
+                    
+                    <div class="section">
+                        <h3>Your Army</h3>
+                        <div id="unitsList" class="stats-grid"></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Train Units</h3>
+                        <div id="trainUnitsList" class="grid"></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Training Queue</h3>
+                        <div id="trainingQueue" class="queue-list"></div>
+                    </div>
+                </div>
+
+                <!-- Magic Tab -->
+                <div id="magicTab" class="tab-content">
+                    <h2>Spell Book</h2>
+                    
+                    <div class="spell-filters">
+                        <button onclick="filterSpells('all')" class="filter-btn active">All</button>
+                        <button onclick="filterSpells('combat')" class="filter-btn">⚔️ Combat</button>
+                        <button onclick="filterSpells('economic')" class="filter-btn">💰 Economic</button>
+                        <button onclick="filterSpells('strategic')" class="filter-btn">🎯 Strategic</button>
+                        <button onclick="filterSpells('enchantment')" class="filter-btn">✨ Enchantment</button>
+                        <button onclick="filterSpells('summoning')" class="filter-btn">👹 Summoning</button>
+                    </div>
+
+                    <div id="spellsList" class="spells-grid"></div>
+                </div>
+
+                <!-- Heroes Tab -->
+                <div id="heroesTab" class="tab-content">
+                    <h2>Heroes</h2>
+                    
+                    <div class="section">
+                        <h3>Available Heroes</h3>
+                        <div id="availableHeroes" class="heroes-grid"></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Your Heroes</h3>
+                        <div id="yourHeroes" class="heroes-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Market Tab -->
+                <div id="marketTab" class="tab-content">
+                    <h2>Black Market</h2>
+                    
+                    <div class="section">
+                        <h3>Items for Sale</h3>
+                        <div id="marketItems" class="items-grid"></div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Your Inventory</h3>
+                        <div id="inventory" class="items-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Combat Tab -->
+                <div id="combatTab" class="tab-content">
+                    <h2>Warfare</h2>
+                    
+                    <div class="section">
+                        <h3>Attack Player</h3>
+                        <input type="text" id="targetUsername" placeholder="Enter username">
+                        <button onclick="attackPlayer()">Launch Attack</button>
+                    </div>
+
+                    <div class="section">
+                        <h3>Combat History</h3>
+                        <div id="combatHistory" class="combat-list"></div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Tab -->
+                <div id="leaderboardTab" class="tab-content">
+                    <h2>Leaderboard</h2>
+                    <div id="leaderboardList" class="leaderboard"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages/Notifications -->
+        <div id="messagesPanel" class="messages-panel">
+            <h3>Messages <span id="unreadCount" class="badge"></span></h3>
+            <div id="messagesList" class="messages-list"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <h2 id="modalTitle"></h2>
+            <div id="modalContent"></div>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
