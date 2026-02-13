@@ -1,0 +1,29 @@
+{
+  "name": "archmage-realtime",
+  "version": "1.0.0",
+  "description": "Real-time multiplayer strategy game inspired by Archmage",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "nodemon src/server/index.js"
+  },
+  "keywords": ["game", "multiplayer", "strategy", "real-time"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "better-sqlite3": "^9.2.2",
+    "bcrypt": "^5.1.1",
+    "uuid": "^9.0.1",
+    "compression": "^1.7.4",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
