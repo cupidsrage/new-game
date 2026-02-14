@@ -126,6 +126,7 @@ railway open
 - `PORT` is provided automatically by Railway.
 - `DATABASE_URL` is required and should point to your Railway Postgres instance.
 - `PGSSLMODE=require` is recommended in Railway production.
+- `DB_SCHEMA` is optional. Defaults to `public`, and should match the schema you inspect in SQL tools.
 
 For production on Railway, attach and reference a PostgreSQL service in your Railway project.
 
