@@ -420,6 +420,48 @@ const UNIT_TYPES = {
     defense: 5,
     description: 'Powerful spellcasters'
   },
+  PIKEMEN: {
+    id: 'pikemen',
+    name: 'Pikemen',
+    goldCost: 140,
+    populationCost: 1,
+    trainingTime: 20,
+    attack: 3,
+    defense: 3,
+    description: 'Disciplined spear infantry that counters cavalry charges'
+  },
+  CROSSBOWMEN: {
+    id: 'crossbowmen',
+    name: 'Crossbowmen',
+    goldCost: 240,
+    populationCost: 1,
+    trainingTime: 28,
+    attack: 6,
+    defense: 2,
+    description: 'Heavy ranged infantry with high armor-piercing damage'
+  },
+  PALADINS: {
+    id: 'paladins',
+    name: 'Paladins',
+    goldCost: 650,
+    manaCost: 40,
+    populationCost: 3,
+    trainingTime: 75,
+    attack: 12,
+    defense: 11,
+    description: 'Holy heavy cavalry with exceptional frontline durability'
+  },
+  WARLOCKS: {
+    id: 'warlocks',
+    name: 'Warlocks',
+    goldCost: 950,
+    manaCost: 180,
+    populationCost: 2,
+    trainingTime: 110,
+    attack: 19,
+    defense: 6,
+    description: 'Dark casters focused on destructive battlefield magic'
+  },
   ELEMENTALS: {
     id: 'elementals',
     name: 'Elementals',
@@ -693,6 +735,104 @@ const HEROES = {
         name: 'Army of Darkness',
         cooldown: 3600,
         effect: 'Summon massive undead army based on casualties dealt'
+      }
+    ]
+  },
+  RANGER: {
+    id: 'ranger',
+    name: 'Sylvan Huntmaster Kael',
+    class: 'Ranger',
+    goldCost: 5500,
+    description: 'Tactical skirmisher commanding elite ranged formations',
+    baseStats: {
+      attack: 135,
+      defense: 70,
+      health: 760
+    },
+    abilities: [
+      {
+        id: 'marked_prey',
+        name: 'Marked Prey',
+        cooldown: 1500,
+        effect: 'Expose target kingdom, increasing all incoming damage by 20% for 30 minutes'
+      },
+      {
+        id: 'hail_of_bolts',
+        name: 'Hail of Bolts',
+        cooldown: 2100,
+        effect: 'Launch a precision volley that destroys 8% of enemy ranged and mage units'
+      },
+      {
+        id: 'forest_ambush',
+        name: 'Forest Ambush',
+        cooldown: 3000,
+        effect: 'Grant your next attack +35% offensive power and reduced retaliation losses'
+      }
+    ]
+  },
+  PALADIN: {
+    id: 'paladin',
+    name: 'Lady Seraphine Dawnshield',
+    class: 'Paladin',
+    goldCost: 6000,
+    description: 'Holy champion who inspires armies and shields allied troops',
+    baseStats: {
+      attack: 110,
+      defense: 130,
+      health: 980,
+      mana: 900
+    },
+    abilities: [
+      {
+        id: 'aegis_vow',
+        name: 'Aegis Vow',
+        cooldown: 1800,
+        effect: 'Reduce all incoming kingdom damage by 35% for 45 minutes'
+      },
+      {
+        id: 'judgment_lance',
+        name: 'Judgment Lance',
+        cooldown: 2400,
+        effect: 'Smite enemy vanguard, eliminating 6% of cavalry and knight-class units'
+      },
+      {
+        id: 'radiant_muster',
+        name: 'Radiant Muster',
+        cooldown: 3600,
+        effect: 'Increase militia, pikemen, and paladin attack/defense by 40% for 1 hour'
+      }
+    ]
+  },
+  ARTIFICER: {
+    id: 'artificer',
+    name: 'Master Artificer Voltren',
+    class: 'Artificer',
+    goldCost: 6200,
+    description: 'Arcane engineer specializing in logistics and battlefield constructs',
+    baseStats: {
+      attack: 95,
+      defense: 95,
+      health: 840,
+      mana: 1200
+    },
+    abilities: [
+      {
+        id: 'clockwork_legion',
+        name: 'Clockwork Legion',
+        cooldown: 2100,
+        effect: 'Instantly reinforce your army with temporary constructs equal to 12% of current forces'
+      },
+      {
+        id: 'supply_overdrive',
+        name: 'Supply Overdrive',
+        cooldown: 2700,
+        effect: 'Increase gold and mana production by 60% and unit training speed by 30% for 30 minutes'
+      },
+      {
+        id: 'runic_barrier_grid',
+        name: 'Runic Barrier Grid',
+        cooldown: 3300,
+        effect: 'Deploy layered warding that grants +50% building resilience for 1 hour'
       }
     ]
   }
