@@ -83,6 +83,23 @@ class GameEngine {
       }
     }
 
+    // Apply troop and hero upkeep costs
+    let totalUpkeepGoldPerSecond = 0;
+
+    for (const [unitType, amount] of Object.entries(player.units || {})) {
+      const unit = UNIT_TYPES[unitType.toUpperCase()];
+      if (!unit || !unit.upkeepGoldPerSecond) continue;
+      totalUpkeepGoldPerSecond += unit.upkeepGoldPerSecond * amount;
+    }
+
+    for (const hero of player.heroes || []) {
+      const heroDefinition = HEROES[(hero.hero_id || '').toUpperCase()];
+      if (!heroDefinition || !heroDefinition.upkeepGoldPerSecond) continue;
+      totalUpkeepGoldPerSecond += heroDefinition.upkeepGoldPerSecond;
+    }
+
+    goldPerSecond -= totalUpkeepGoldPerSecond;
+
     // Apply active effects/buffs
     const now = Date.now();
     for (const effect of player.activeEffects || []) {

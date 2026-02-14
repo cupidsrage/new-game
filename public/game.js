@@ -334,6 +334,7 @@ function renderUnitsStats() {
             <h4>${unit.name}</h4>
             <p>Attack: ${unit.attack} | Defense: ${unit.defense}</p>
             <p><strong>Owned:</strong> ${owned}</p>
+            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s each</p>
         `;
         container.appendChild(card);
     }
@@ -364,6 +365,7 @@ function renderTrainUnits() {
             <p><strong>Cost:</strong> ${unit.goldCost || 0} gold${unit.manaCost ? `, ${unit.manaCost} mana` : ''}</p>
             <p><strong>Population:</strong> ${unit.populationCost}</p>
             <p><strong>Attack:</strong> ${unit.attack} | <strong>Defense:</strong> ${unit.defense}</p>
+            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s</p>
             <p><strong>Training Time:</strong> ${unit.trainingTime}s</p>
             <div style="display: flex; gap: 0.5rem;">
                 <input type="number" id="train_${unit.id}" value="10" min="1" style="width: 60px; padding: 0.5rem;">
@@ -510,6 +512,7 @@ function renderHeroes() {
                 `).join('')}
             </div>
             <p style="margin-top: 1rem;"><strong>Cost:</strong> ${hero.goldCost} gold</p>
+            <p><strong>Upkeep:</strong> ${(hero.upkeepGoldPerSecond || 0).toFixed(2)} gold/s</p>
             <button onclick="recruitHero('${hero.id}')">Recruit Hero</button>
         `;
         availableContainer.appendChild(card);
