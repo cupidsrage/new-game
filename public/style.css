@@ -320,11 +320,13 @@ button {
 
 .spell-card,
 .hero-card {
+    position: relative;
     background: linear-gradient(155deg, rgba(50, 62, 122, 0.9), rgba(19, 29, 59, 0.95));
     color: #edf2ff;
     padding: 1.2rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
+    overflow: hidden;
 }
 
 .spell-card::before {
@@ -333,6 +335,7 @@ button {
     inset: 0;
     background: linear-gradient(120deg, rgba(255,255,255,0.12), transparent 45%);
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s;
 }
 .spell-card:hover::before { opacity: 1; }
