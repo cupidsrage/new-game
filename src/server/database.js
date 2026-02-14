@@ -10,10 +10,12 @@ function buildPoolConfig() {
   }
 
   const useSsl = process.env.PGSSLMODE === 'require' || /railway\.app/.test(connectionString);
+  const schema = process.env.DB_SCHEMA || 'public';
 
   return {
     connectionString,
-    ssl: useSsl ? { rejectUnauthorized: false } : false
+    ssl: useSsl ? { rejectUnauthorized: false } : false,
+    options: `-c search_path=${schema}`
   };
 }
 
@@ -24,9 +26,12 @@ class GameDatabase {
 
   async initialize() {
     await this.query('SELECT 1');
+    const dbInfo = await this.query('SELECT current_database() AS database, current_schema() AS schema_name');
     await this.initializeTables();
     await this.seedInitialData();
+    const playerCount = Number((await this.query('SELECT COUNT(*)::int AS count FROM players')).rows[0].count);
     console.log('Connected to PostgreSQL and initialized tables');
+    console.log(`Database: ${dbInfo.rows[0].database}, schema: ${dbInfo.rows[0].schema_name}, players: ${playerCount}`);
   }
 
   async query(text, params = []) {
