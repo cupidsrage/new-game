@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const { HEROES, ITEMS } = require('../shared/gameData');
 
 function buildPoolConfig() {
   const connectionString = process.env.DATABASE_URL;
@@ -24,6 +25,7 @@ class GameDatabase {
   async initialize() {
     await this.query('SELECT 1');
     await this.initializeTables();
+    await this.seedInitialData();
     console.log('Connected to PostgreSQL and initialized tables');
   }
 
@@ -191,6 +193,44 @@ class GameDatabase {
         type TEXT DEFAULT 'info'
       );
     `);
+  }
+
+  async seedInitialData() {
+    const playerCount = Number((await this.query('SELECT COUNT(*)::int AS count FROM players')).rows[0].count);
+    if (playerCount === 0) {
+      const botPlayers = [
+        { id: 'bot-king-aldric', username: 'KingAldric', email: 'king.aldric@npcs.archmage.local' },
+        { id: 'bot-luna-veil', username: 'LunaVeil', email: 'luna.veil@npcs.archmage.local' },
+        { id: 'bot-ragnar-ironfist', username: 'RagnarIronfist', email: 'ragnar.ironfist@npcs.archmage.local' }
+      ];
+
+      for (const player of botPlayers) {
+        await this.createPlayer(player.id, player.username, 'npc-only-account', player.email);
+      }
+    }
+
+    const heroListingCount = Number((await this.query("SELECT COUNT(*)::int AS count FROM hero_market_listings WHERE status = 'active'")).rows[0].count);
+    if (heroListingCount === 0) {
+      const now = Date.now();
+      const heroCatalog = Object.values(HEROES).slice(0, 3);
+      for (let index = 0; index < heroCatalog.length; index += 1) {
+        const hero = heroCatalog[index];
+        await this.createHeroMarketListing(hero.id, 1 + index, 1200 + (index * 600), now + ((index + 1) * 24 * 60 * 60 * 1000));
+      }
+    }
+
+    const blackMarketCount = Number((await this.query('SELECT COUNT(*)::int AS count FROM black_market')).rows[0].count);
+    if (blackMarketCount === 0) {
+      const now = Date.now();
+      const itemCatalog = Object.values(ITEMS).slice(0, 3);
+      for (let index = 0; index < itemCatalog.length; index += 1) {
+        const item = itemCatalog[index];
+        await this.query(
+          'INSERT INTO black_market (item_id, seller_id, price, quantity, listed_at, expires_at) VALUES ($1, $2, $3, $4, $5, $6)',
+          [item.id, null, 500 + (index * 250), 1, now, now + (12 * 60 * 60 * 1000)]
+        );
+      }
+    }
   }
 
   async createPlayer(id, username, password, email = null) {
