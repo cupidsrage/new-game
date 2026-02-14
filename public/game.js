@@ -447,6 +447,18 @@ function renderTrainingQueue(queue) {
 
 // Magic tab
 let currentSpellFilter = 'all';
+const TARGETED_SPELLS = new Set([
+    'fireball',
+    'lightning_storm',
+    'meteor_strike',
+    'plague',
+    'clairvoyance',
+    'teleport',
+    'weakness',
+    'confusion',
+    'steal_mana',
+    'summon_dragon'
+]);
 
 function renderSpells() {
     const container = document.getElementById('spellsList');
@@ -483,22 +495,34 @@ function filterSpells(school, event) {
 }
 
 function castSpellPrompt(spellId) {
-    const spell = gameData.spells[spellId.toUpperCase()];
-    
-    // Check if spell requires target
-    const needsTarget = ['fireball', 'lightning_storm', 'meteor_strike', 'plague', 
-                         'clairvoyance', 'teleport', 'weakness', 'confusion', 
-                         'steal_mana', 'summon_dragon'].includes(spellId);
-    
-    if (needsTarget) {
-        const target = prompt('Enter target username:');
-        if (!target) return;
-        
-        // In real implementation, we'd get player ID from username
-        castSpell(spellId, target);
-    } else {
+    if (!TARGETED_SPELLS.has(spellId)) {
         castSpell(spellId);
+        return;
     }
+
+    showModal('Cast Targeted Spell', `
+        <p style="margin-bottom: 0.75rem;">Enter a target username:</p>
+        <input id="spellTargetInput" type="text" placeholder="Target username" style="width: 100%; padding: 0.5rem; margin-bottom: 0.75rem;" />
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button onclick="closeModal()">Cancel</button>
+            <button onclick="submitSpellTarget('${spellId}')">Cast</button>
+        </div>
+    `);
+
+    setTimeout(() => {
+        document.getElementById('spellTargetInput')?.focus();
+    }, 0);
+}
+
+function submitSpellTarget(spellId) {
+    const target = document.getElementById('spellTargetInput')?.value?.trim();
+    if (!target) {
+        showNotification('Please enter a target username.', 'danger');
+        return;
+    }
+
+    closeModal();
+    castSpell(spellId, target);
 }
 
 function castSpell(spellId, targetPlayerId = null) {
