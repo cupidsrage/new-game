@@ -23,6 +23,7 @@ class GameDatabase {
         mana REAL DEFAULT 1000,
         population REAL DEFAULT 100,
         land INTEGER DEFAULT 50,
+        total_land INTEGER DEFAULT 50,
         experience INTEGER DEFAULT 0,
         level INTEGER DEFAULT 1,
         wins INTEGER DEFAULT 0,
@@ -31,6 +32,8 @@ class GameDatabase {
         total_spells_cast INTEGER DEFAULT 0
       )
     `);
+
+    this.runPlayerTableMigrations();
 
     // Heroes table
     this.db.exec(`
@@ -183,6 +186,17 @@ class GameDatabase {
     console.log('Database tables initialized');
   }
 
+  runPlayerTableMigrations() {
+    const columns = this.db.prepare("PRAGMA table_info(players)").all();
+    const columnNames = new Set(columns.map((column) => column.name));
+
+    if (!columnNames.has('total_land')) {
+      this.db.exec('ALTER TABLE players ADD COLUMN total_land INTEGER DEFAULT 50');
+      this.db.exec('UPDATE players SET total_land = land WHERE total_land IS NULL');
+      console.log('Migration complete: added players.total_land and backfilled from land');
+    }
+  }
+
   // Player methods
   createPlayer(id, username, password, email = null) {
     const passwordHash = bcrypt.hashSync(password, 10);
@@ -253,17 +267,17 @@ class GameDatabase {
     return player;
   }
 
-  updatePlayerResources(playerId, gold, mana, population, land) {
+  updatePlayerResources(playerId, gold, mana, population, land, totalLand = land) {
     const stmt = this.db.prepare(`
       UPDATE players 
-      SET gold = ?, mana = ?, population = ?, land = ?, last_active = ?
+      SET gold = ?, mana = ?, population = ?, land = ?, total_land = ?, last_active = ?
       WHERE id = ?
     `);
-    stmt.run(gold, mana, population, land, Date.now(), playerId);
+    stmt.run(gold, mana, population, land, totalLand, Date.now(), playerId);
   }
 
   getAllPlayers() {
-    const stmt = this.db.prepare('SELECT id, username, gold, mana, population, land, level, wins, losses FROM players ORDER BY level DESC, experience DESC');
+    const stmt = this.db.prepare('SELECT id, username, gold, mana, population, land, total_land, level, wins, losses FROM players ORDER BY level DESC, experience DESC');
     return stmt.all();
   }
 

@@ -121,6 +121,7 @@ function connectToServer() {
         if (resources.mana !== undefined) player.mana = resources.mana;
         if (resources.population !== undefined) player.population = resources.population;
         if (resources.land !== undefined) player.land = resources.land;
+        if (resources.totalLand !== undefined) player.totalLand = resources.totalLand;
         updatePlayerInfo();
     });
 
@@ -181,9 +182,11 @@ function updatePlayerInfo() {
     document.getElementById('goldAmount').textContent = Math.floor(player.gold);
     document.getElementById('manaAmount').textContent = Math.floor(player.mana);
     document.getElementById('populationAmount').textContent = Math.floor(player.population);
+    const totalLand = player.totalLand ?? player.land;
     document.getElementById('landAmount').textContent = player.land;
+    document.getElementById('totalLandAmount').textContent = totalLand;
 
-    const landCost = Math.floor(1000 * (1 + player.land / 100));
+    const landCost = Math.floor(1000 * (1 + totalLand / 100));
     document.getElementById('landCost').textContent = landCost;
 }
 
@@ -556,7 +559,7 @@ function renderLeaderboard(players) {
             <div class="rank">#${index + 1}</div>
             <div><strong>${p.username}</strong></div>
             <div>Lvl ${p.level}</div>
-            <div>${p.land} land</div>
+            <div>${p.land} wild / ${p.total_land} total</div>
             <div>${p.wins}W/${p.losses}L</div>
         `;
         container.appendChild(div);

@@ -135,8 +135,8 @@ const SPELLS = {
     effect: (caster) => ({
       type: 'instant_resource',
       targetPlayerId: caster.id,
-      gold: caster.land * 10,
-      mana: caster.land * 5,
+      gold: caster.total_land * 10,
+      mana: caster.total_land * 5,
       message: `${caster.username} blessed the harvest! Gained instant resources!`
     })
   },
@@ -271,7 +271,7 @@ const SPELLS = {
       type: 'summon_units',
       targetPlayerId: caster.id,
       unitType: 'elementals',
-      amount: Math.floor(caster.land * 2),
+      amount: Math.floor(caster.total_land * 2),
       message: `${caster.username} summoned Elementals to join their army!`
     })
   },
@@ -286,7 +286,7 @@ const SPELLS = {
       type: 'summon_units',
       targetPlayerId: caster.id,
       unitType: 'demons',
-      amount: Math.floor(caster.land * 1.5),
+      amount: Math.floor(caster.total_land * 1.5),
       message: `${caster.username} opened a portal and summoned Demons!`
     })
   },
@@ -301,7 +301,7 @@ const SPELLS = {
       type: 'summon_units',
       targetPlayerId: caster.id,
       unitType: 'undead',
-      amount: Math.floor(caster.land * 3),
+      amount: Math.floor(caster.total_land * 3),
       message: `${caster.username} raised an Undead army from the graves!`
     })
   },

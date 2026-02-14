@@ -65,7 +65,8 @@ app.post('/api/register', (req, res) => {
         gold: player.gold,
         mana: player.mana,
         population: player.population,
-        land: player.land
+        land: player.land,
+        totalLand: player.total_land
       }
     });
   } catch (error) {
@@ -100,6 +101,7 @@ app.post('/api/login', (req, res) => {
         mana: player.mana,
         population: player.population,
         land: player.land,
+        totalLand: player.total_land,
         level: player.level
       }
     });
@@ -151,6 +153,7 @@ io.on('connection', (socket) => {
         mana: player.mana,
         population: player.population,
         land: player.land,
+        totalLand: player.total_land,
         level: player.level,
         experience: player.experience,
         units: player.units,
@@ -204,7 +207,8 @@ io.on('connection', (socket) => {
       const player = db.getPlayer(playerId);
       socket.emit('resourceUpdate', {
         gold: player.gold,
-        land: player.land
+        land: player.land,
+        totalLand: player.total_land
       });
 
       const queue = db.getBuildingQueue(playerId);
@@ -246,7 +250,8 @@ io.on('connection', (socket) => {
       const player = db.getPlayer(playerId);
       socket.emit('resourceUpdate', {
         gold: player.gold,
-        land: player.land
+        land: player.land,
+        totalLand: player.total_land
       });
     }
   });
@@ -271,6 +276,7 @@ io.on('connection', (socket) => {
       username: targetPlayer.username,
       level: targetPlayer.level,
       land: targetPlayer.land,
+      totalLand: targetPlayer.total_land,
       wins: targetPlayer.wins,
       losses: targetPlayer.losses,
       // Only show detailed info if allowed
