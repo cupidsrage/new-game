@@ -82,6 +82,15 @@ npm start
 http://localhost:3000
 ```
 
+### Do I need a database?
+
+Yes. The game server requires PostgreSQL because all player accounts, game state, queues, cooldowns, markets, and combat logs are stored in the database.
+
+- Required env var: `DATABASE_URL`
+- Optional env vars: `PGSSLMODE`, `DB_SCHEMA`
+
+If `DATABASE_URL` is missing, the server exits at startup.
+
 ### Development Mode with Auto-Reload
 
 ```bash
