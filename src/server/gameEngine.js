@@ -16,30 +16,30 @@ class GameEngine {
   startGameLoop() {
     // Main game tick - runs every second
     setInterval(() => {
-      this.tick();
+      void this.tick();
     }, GAME_CONFIG.TICK_RATE);
 
     // Process queues every 5 seconds
     setInterval(() => {
-      this.processQueues();
+      void this.processQueues();
     }, 5000);
 
     // Clean expired effects every minute
     setInterval(() => {
-      this.db.cleanExpiredEffects();
+      void this.db.cleanExpiredEffects();
     }, 60000);
 
     // Resolve hero market listings and generate fresh listings
     setInterval(() => {
-      this.processHeroMarket();
+      void this.processHeroMarket();
     }, 5000);
   }
 
-  tick() {
+  async tick() {
     // Update resources for all active players
     for (const [playerId, playerData] of this.players) {
       try {
-        const player = this.db.getPlayer(playerId);
+        const player = await this.db.getPlayer(playerId);
         if (!player) continue;
 
         // Calculate resource production
@@ -51,7 +51,7 @@ class GameEngine {
         player.population = Math.max(0, player.population + production.population);
 
         // Save to database
-        this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
+        await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
         // Emit update to client
         if (this.io) {
@@ -131,27 +131,27 @@ class GameEngine {
     };
   }
 
-  getProductionRates(playerId) {
-    const player = this.db.getPlayer(playerId);
+  async getProductionRates(playerId) {
+    const player = await this.db.getPlayer(playerId);
     if (!player) return null;
 
     return this.calculateProduction(player);
   }
 
-  processQueues() {
+  async processQueues() {
     const now = Date.now();
 
     // Process training queues
     for (const [playerId] of this.players) {
-      const trainingQueue = this.db.getTrainingQueue(playerId);
+      const trainingQueue = await this.db.getTrainingQueue(playerId);
       
       for (const item of trainingQueue) {
         if (item.completes_at <= now) {
           // Training complete
-          const player = this.db.getPlayer(playerId);
+          const player = await this.db.getPlayer(playerId);
           const currentAmount = player.units[item.unit_type] || 0;
-          this.db.updateUnits(playerId, item.unit_type, currentAmount + item.amount);
-          this.db.completeTraining(item.id);
+          await this.db.updateUnits(playerId, item.unit_type, currentAmount + item.amount);
+          await this.db.completeTraining(item.id);
 
           // Notify player
           this.io.to(playerId).emit('trainingComplete', {
@@ -159,20 +159,20 @@ class GameEngine {
             amount: item.amount
           });
 
-          this.db.addMessage(playerId, `Training complete: ${item.amount} ${item.unit_type}`, 'success');
+          await this.db.addMessage(playerId, `Training complete: ${item.amount} ${item.unit_type}`, 'success');
         }
       }
 
       // Process building queues
-      const buildingQueue = this.db.getBuildingQueue(playerId);
+      const buildingQueue = await this.db.getBuildingQueue(playerId);
       
       for (const item of buildingQueue) {
         if (item.completes_at <= now) {
           // Building complete
-          const player = this.db.getPlayer(playerId);
+          const player = await this.db.getPlayer(playerId);
           const currentAmount = player.buildings[item.building_type] || 0;
-          this.db.updateBuildings(playerId, item.building_type, currentAmount + item.amount);
-          this.db.completeBuilding(item.id);
+          await this.db.updateBuildings(playerId, item.building_type, currentAmount + item.amount);
+          await this.db.completeBuilding(item.id);
 
           // Notify player
           this.io.to(playerId).emit('buildingComplete', {
@@ -180,16 +180,16 @@ class GameEngine {
             amount: item.amount
           });
 
-          this.db.addMessage(playerId, `Construction complete: ${item.amount} ${item.building_type}`, 'success');
+          await this.db.addMessage(playerId, `Construction complete: ${item.amount} ${item.building_type}`, 'success');
         }
       }
     }
   }
 
-  registerPlayer(playerId, socketId) {
+  async registerPlayer(playerId, socketId) {
     this.players.set(playerId, { socketId, lastUpdate: Date.now() });
-    this.ensureHeroMarketSupply();
-    this.emitHeroMarketUpdate();
+    await this.ensureHeroMarketSupply();
+    await this.emitHeroMarketUpdate();
   }
 
 
@@ -211,7 +211,7 @@ class GameEngine {
     };
   }
 
-  generateHeroMarketListing() {
+  async generateHeroMarketListing() {
     const heroPool = Object.values(HEROES);
     if (!heroPool.length) return null;
 
@@ -221,24 +221,24 @@ class GameEngine {
       Math.floor(Math.random() * (this.heroMarketConfig.maxListingDurationSeconds - this.heroMarketConfig.minListingDurationSeconds + 1));
 
     const startingBid = Math.floor(hero.goldCost * (0.65 + (heroLevel * 0.18)));
-    return this.db.createHeroMarketListing(hero.id, heroLevel, startingBid, Date.now() + (durationSeconds * 1000));
+    return await this.db.createHeroMarketListing(hero.id, heroLevel, startingBid, Date.now() + (durationSeconds * 1000));
   }
 
-  ensureHeroMarketSupply() {
-    const active = this.db.getHeroMarketListings();
+  async ensureHeroMarketSupply() {
+    const active = await this.db.getHeroMarketListings();
     const needed = this.heroMarketConfig.maxActiveListings - active.length;
 
     if (needed <= 0) return;
 
     for (let i = 0; i < needed; i += 1) {
-      this.generateHeroMarketListing();
+      await this.generateHeroMarketListing();
     }
   }
 
-  emitHeroMarketUpdate() {
+  async emitHeroMarketUpdate() {
     if (!this.io) return;
 
-    const listings = this.db.getHeroMarketListings().map((listing) => ({
+    const listings = (await this.db.getHeroMarketListings()).map((listing) => ({
       ...listing,
       timeLeftSeconds: Math.max(0, Math.ceil((listing.expires_at - Date.now()) / 1000))
     }));
@@ -246,11 +246,11 @@ class GameEngine {
     this.io.emit('heroMarketUpdate', listings);
   }
 
-  processHeroMarket() {
-    const expiredListings = this.db.getExpiredHeroListings();
+  async processHeroMarket() {
+    const expiredListings = await this.db.getExpiredHeroListings();
 
     for (const listing of expiredListings) {
-      const resolved = this.db.completeHeroListing(listing.id);
+      const resolved = await this.db.completeHeroListing(listing.id);
       if (!resolved) continue;
 
       const { listing: completedListing, highestBid } = resolved;
@@ -261,12 +261,12 @@ class GameEngine {
       }
 
       const stats = this.scaleHeroStats(heroDefinition, completedListing.hero_level);
-      this.db.addHeroToPlayer(highestBid.player_id, completedListing.hero_id, completedListing.hero_level, stats);
-      this.db.addMessage(highestBid.player_id,
+      await this.db.addHeroToPlayer(highestBid.player_id, completedListing.hero_id, completedListing.hero_level, stats);
+      await this.db.addMessage(highestBid.player_id,
         `You won ${heroDefinition.name} (Level ${completedListing.hero_level}) for ${Math.floor(highestBid.bid_amount)} gold in the Black Market!`,
         'success');
 
-      const winner = this.db.getPlayer(highestBid.player_id);
+      const winner = await this.db.getPlayer(highestBid.player_id);
       this.io.to(highestBid.player_id).emit('heroWon', {
         heroId: completedListing.hero_id,
         heroLevel: completedListing.hero_level,
@@ -275,19 +275,19 @@ class GameEngine {
       this.io.to(highestBid.player_id).emit('heroInventoryUpdate', winner.heroes || []);
     }
 
-    this.ensureHeroMarketSupply();
-    this.emitHeroMarketUpdate();
+    await this.ensureHeroMarketSupply();
+    await this.emitHeroMarketUpdate();
   }
 
-  getHeroMarketListings() {
-    return this.db.getHeroMarketListings().map((listing) => ({
+  async getHeroMarketListings() {
+    return (await this.db.getHeroMarketListings()).map((listing) => ({
       ...listing,
       timeLeftSeconds: Math.max(0, Math.ceil((listing.expires_at - Date.now()) / 1000))
     }));
   }
 
-  bidOnHeroMarket(playerId, listingId, bidAmount) {
-    const listing = this.db.getHeroMarketListingWithHighestBid(listingId);
+  async bidOnHeroMarket(playerId, listingId, bidAmount) {
+    const listing = await this.db.getHeroMarketListingWithHighestBid(listingId);
     if (!listing || listing.status !== 'active') {
       return { success: false, error: 'Listing not found' };
     }
@@ -296,13 +296,13 @@ class GameEngine {
       return { success: false, error: 'Listing already ended' };
     }
 
-    const result = this.db.placeHeroMarketBid(listingId, playerId, bidAmount);
+    const result = await this.db.placeHeroMarketBid(listingId, playerId, bidAmount);
     if (!result.success) {
       return result;
     }
 
-    this.db.addMessage(playerId, `Bid placed: ${Math.floor(bidAmount)} gold`, 'info');
-    this.emitHeroMarketUpdate();
+    await this.db.addMessage(playerId, `Bid placed: ${Math.floor(bidAmount)} gold`, 'info');
+    await this.emitHeroMarketUpdate();
 
     return { success: true };
   }
@@ -311,8 +311,8 @@ class GameEngine {
     this.players.delete(playerId);
   }
 
-  trainUnits(playerId, unitType, amount) {
-    const player = this.db.getPlayer(playerId);
+  async trainUnits(playerId, unitType, amount) {
+    const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
     const unit = UNIT_TYPES[unitType.toUpperCase()];
@@ -337,7 +337,7 @@ class GameEngine {
     player.gold -= totalGoldCost;
     player.mana -= totalManaCost;
     player.population -= totalPopulationCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
+    await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Add to training queue
     const baseTime = unit.trainingTime * amount;
@@ -358,7 +358,7 @@ class GameEngine {
     }
 
     const completesAt = Date.now() + (trainingTime * 1000);
-    this.db.addToTrainingQueue(playerId, unitType, amount, completesAt);
+    await this.db.addToTrainingQueue(playerId, unitType, amount, completesAt);
 
     return {
       success: true,
@@ -367,8 +367,8 @@ class GameEngine {
     };
   }
 
-  buildStructure(playerId, buildingType, amount = 1) {
-    const player = this.db.getPlayer(playerId);
+  async buildStructure(playerId, buildingType, amount = 1) {
+    const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
     const building = BUILDING_TYPES[buildingType.toUpperCase()];
@@ -388,7 +388,7 @@ class GameEngine {
     // Deduct resources
     player.gold -= totalGoldCost;
     player.land -= totalLandCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
+    await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Add to building queue
     let buildTime = building.buildTime * amount;
@@ -401,7 +401,7 @@ class GameEngine {
     }
 
     const completesAt = Date.now() + (buildTime * 1000);
-    this.db.addToBuildingQueue(playerId, buildingType, amount, completesAt);
+    await this.db.addToBuildingQueue(playerId, buildingType, amount, completesAt);
 
     return {
       success: true,
@@ -410,8 +410,8 @@ class GameEngine {
     };
   }
 
-  castSpell(playerId, spellId, targetPlayerId = null) {
-    const player = this.db.getPlayer(playerId);
+  async castSpell(playerId, spellId, targetPlayerId = null) {
+    const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
     const spell = SPELLS[spellId.toUpperCase()];
@@ -423,7 +423,7 @@ class GameEngine {
     }
 
     // Check cooldown
-    const cooldowns = this.db.getSpellCooldowns(playerId);
+    const cooldowns = await this.db.getSpellCooldowns(playerId);
     const cooldown = cooldowns.find(c => c.spell_id === spellId);
     if (cooldown && cooldown.ready_at > Date.now()) {
       const remaining = Math.ceil((cooldown.ready_at - Date.now()) / 1000);
@@ -433,23 +433,23 @@ class GameEngine {
     // Get target if needed
     let target = null;
     if (targetPlayerId) {
-      target = this.db.getPlayer(targetPlayerId);
+      target = await this.db.getPlayer(targetPlayerId);
       if (!target) return { success: false, error: 'Target not found' };
     }
 
     // Deduct mana
     player.mana -= spell.manaCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
+    await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Set cooldown
     const readyAt = Date.now() + (spell.cooldown * 1000);
-    this.db.setSpellCooldown(playerId, spellId, readyAt);
+    await this.db.setSpellCooldown(playerId, spellId, readyAt);
 
     // Apply spell effect
     const result = this.applySpellEffect(player, target, spell);
 
     // Update stats
-    this.db.db.prepare('UPDATE players SET total_spells_cast = total_spells_cast + 1 WHERE id = ?').run(playerId);
+    await this.db.incrementPlayerStats(playerId, { total_spells_cast: 1 });
 
     return {
       success: true,
@@ -458,7 +458,7 @@ class GameEngine {
     };
   }
 
-  applySpellEffect(caster, target, spell) {
+  async applySpellEffect(caster, target, spell) {
     const effect = spell.effect(caster, target);
     const now = Date.now();
 
@@ -473,51 +473,51 @@ class GameEngine {
           for (const [unitType, amount] of Object.entries(target.units)) {
             if (remaining <= 0) break;
             const killed = Math.min(amount, remaining);
-            this.db.updateUnits(target.id, unitType, amount - killed);
+            await this.db.updateUnits(target.id, unitType, amount - killed);
             remaining -= killed;
           }
 
-          this.db.addMessage(target.id, effect.message, 'combat');
+          await this.db.addMessage(target.id, effect.message, 'combat');
           this.io.to(target.id).emit('attacked', { message: effect.message });
         }
         break;
 
       case 'buff_resource':
-        this.db.addEffect(caster.id, 'buff_resource', effect.multiplier, now + (effect.duration * 1000), effect.resource);
-        this.db.addMessage(caster.id, effect.message, 'buff');
+        await this.db.addEffect(caster.id, 'buff_resource', effect.multiplier, now + (effect.duration * 1000), effect.resource);
+        await this.db.addMessage(caster.id, effect.message, 'buff');
         break;
 
       case 'buff_defense':
-        this.db.addEffect(caster.id, 'buff_defense', effect.multiplier, now + (effect.duration * 1000), 'defense');
-        this.db.addMessage(caster.id, effect.message, 'buff');
+        await this.db.addEffect(caster.id, 'buff_defense', effect.multiplier, now + (effect.duration * 1000), 'defense');
+        await this.db.addMessage(caster.id, effect.message, 'buff');
         break;
 
       case 'buff_offense':
-        this.db.addEffect(caster.id, 'buff_offense', effect.multiplier, now + (effect.duration * 1000), 'offense');
-        this.db.addMessage(caster.id, effect.message, 'buff');
+        await this.db.addEffect(caster.id, 'buff_offense', effect.multiplier, now + (effect.duration * 1000), 'offense');
+        await this.db.addMessage(caster.id, effect.message, 'buff');
         break;
 
       case 'buff_speed':
-        this.db.addEffect(caster.id, 'buff_speed', effect.multiplier, now + (effect.duration * 1000), 'speed');
-        this.db.addMessage(caster.id, effect.message, 'buff');
+        await this.db.addEffect(caster.id, 'buff_speed', effect.multiplier, now + (effect.duration * 1000), 'speed');
+        await this.db.addMessage(caster.id, effect.message, 'buff');
         break;
 
       case 'buff_immunity':
-        this.db.addEffect(caster.id, 'buff_immunity', 1, now + (effect.duration * 1000), 'immunity');
-        this.db.addMessage(caster.id, effect.message, 'buff');
+        await this.db.addEffect(caster.id, 'buff_immunity', 1, now + (effect.duration * 1000), 'immunity');
+        await this.db.addMessage(caster.id, effect.message, 'buff');
         break;
 
       case 'summon_units':
         const currentAmount = caster.units[effect.unitType] || 0;
-        this.db.updateUnits(caster.id, effect.unitType, currentAmount + effect.amount);
-        this.db.addMessage(caster.id, effect.message, 'success');
+        await this.db.updateUnits(caster.id, effect.unitType, currentAmount + effect.amount);
+        await this.db.addMessage(caster.id, effect.message, 'success');
         break;
 
       case 'instant_resource':
         caster.gold += effect.gold || 0;
         caster.mana += effect.mana || 0;
-        this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
-        this.db.addMessage(caster.id, effect.message, 'success');
+        await this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
+        await this.db.addMessage(caster.id, effect.message, 'success');
         break;
 
       case 'steal_resource':
@@ -525,9 +525,9 @@ class GameEngine {
           const amount = Math.floor(target[effect.resource] * effect.percentage);
           target[effect.resource] -= amount;
           caster[effect.resource] += amount;
-          this.db.updatePlayerResources(target.id, target.gold, target.mana, target.population, target.land, target.total_land);
-          this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
-          this.db.addMessage(target.id, effect.message, 'combat');
+          await this.db.updatePlayerResources(target.id, target.gold, target.mana, target.population, target.land, target.total_land);
+          await this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
+          await this.db.addMessage(target.id, effect.message, 'combat');
         }
         break;
     }
@@ -535,9 +535,9 @@ class GameEngine {
     return effect;
   }
 
-  attack(attackerId, defenderId) {
-    const attacker = this.db.getPlayer(attackerId);
-    const defender = this.db.getPlayer(defenderId);
+  async attack(attackerId, defenderId) {
+    const attacker = await this.db.getPlayer(attackerId);
+    const defender = await this.db.getPlayer(defenderId);
 
     if (!attacker || !defender) {
       return { success: false, error: 'Invalid players' };
@@ -598,13 +598,13 @@ class GameEngine {
     for (const [unitType, amount] of Object.entries(attacker.units)) {
       const lost = Math.floor(amount * attackerLossRate);
       attackerUnitsLost += lost;
-      this.db.updateUnits(attackerId, unitType, amount - lost);
+      await this.db.updateUnits(attackerId, unitType, amount - lost);
     }
 
     for (const [unitType, amount] of Object.entries(defender.units)) {
       const lost = Math.floor(amount * defenderLossRate);
       defenderUnitsLost += lost;
-      this.db.updateUnits(defenderId, unitType, amount - lost);
+      await this.db.updateUnits(defenderId, unitType, amount - lost);
     }
 
     // Spoils of war
@@ -622,15 +622,15 @@ class GameEngine {
       defender.land = Math.max(0, defender.land - landCaptured);
       defender.total_land = Math.max(0, defender.total_land - landCaptured);
 
-      this.db.updatePlayerResources(attackerId, attacker.gold, attacker.mana, attacker.population, attacker.land, attacker.total_land);
-      this.db.updatePlayerResources(defenderId, defender.gold, defender.mana, defender.population, defender.land, defender.total_land);
+      await this.db.updatePlayerResources(attackerId, attacker.gold, attacker.mana, attacker.population, attacker.land, attacker.total_land);
+      await this.db.updatePlayerResources(defenderId, defender.gold, defender.mana, defender.population, defender.land, defender.total_land);
 
       // Update win/loss records
-      this.db.db.prepare('UPDATE players SET wins = wins + 1, total_attacks = total_attacks + 1 WHERE id = ?').run(attackerId);
-      this.db.db.prepare('UPDATE players SET losses = losses + 1 WHERE id = ?').run(defenderId);
+      await this.db.incrementPlayerStats(attackerId, { wins: 1, total_attacks: 1 });
+      await this.db.incrementPlayerStats(defenderId, { losses: 1 });
     } else {
-      this.db.db.prepare('UPDATE players SET losses = losses + 1, total_attacks = total_attacks + 1 WHERE id = ?').run(attackerId);
-      this.db.db.prepare('UPDATE players SET wins = wins + 1 WHERE id = ?').run(defenderId);
+      await this.db.incrementPlayerStats(attackerId, { losses: 1, total_attacks: 1 });
+      await this.db.incrementPlayerStats(defenderId, { wins: 1 });
     }
 
     const report = {
@@ -643,7 +643,7 @@ class GameEngine {
       defenderPower: Math.floor(defenderPower)
     };
 
-    this.db.addCombatLog(attackerId, defenderId, report);
+    await this.db.addCombatLog(attackerId, defenderId, report);
 
     // Notifications
     const attackMessage = victory 
@@ -654,8 +654,8 @@ class GameEngine {
       ? `${attacker.username} attacked and conquered some of your land!`
       : `Victory! You successfully defended against ${attacker.username}!`;
 
-    this.db.addMessage(attackerId, attackMessage, victory ? 'success' : 'danger');
-    this.db.addMessage(defenderId, defenseMessage, victory ? 'danger' : 'success');
+    await this.db.addMessage(attackerId, attackMessage, victory ? 'success' : 'danger');
+    await this.db.addMessage(defenderId, defenseMessage, victory ? 'danger' : 'success');
 
     this.io.to(defenderId).emit('attacked', { message: defenseMessage, report });
 
@@ -665,8 +665,8 @@ class GameEngine {
     };
   }
 
-  expandLand(playerId, amount = 1) {
-    const player = this.db.getPlayer(playerId);
+  async expandLand(playerId, amount = 1) {
+    const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
     const totalCost = GAME_CONFIG.LAND_EXPANSION_COST * amount * (1 + player.total_land / 100);
@@ -678,7 +678,7 @@ class GameEngine {
     player.gold -= totalCost;
     player.land += amount;
     player.total_land += amount;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
+    await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     return {
       success: true,
@@ -688,8 +688,8 @@ class GameEngine {
     };
   }
 
-  getLeaderboard() {
-    return this.db.getAllPlayers();
+  async getLeaderboard() {
+    return await this.db.getAllPlayers();
   }
 }
 

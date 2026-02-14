@@ -124,10 +124,10 @@ railway open
 ### Environment Variables
 
 - `PORT` is provided automatically by Railway.
-- `GAME_DB_PATH` (optional) lets you set an explicit SQLite file location.
-- `RAILWAY_VOLUME_MOUNT_PATH` (set by Railway when a volume is attached) is used automatically to store `game.db` on persistent storage.
+- `DATABASE_URL` is required and should point to your Railway Postgres instance.
+- `PGSSLMODE=require` is recommended in Railway production.
 
-For production on Railway, attach a volume so account data survives redeploys/restarts.
+For production on Railway, attach and reference a PostgreSQL service in your Railway project.
 
 ## How to Play
 
@@ -211,7 +211,7 @@ For production on Railway, attach a volume so account data survives redeploys/re
 ### Backend
 - **Node.js** + Express for HTTP server
 - **Socket.io** for real-time WebSocket communication
-- **SQLite** (better-sqlite3) for data persistence
+- **PostgreSQL** (`pg`) for persistent game data storage
 - **bcrypt** for password hashing
 
 ### Frontend
