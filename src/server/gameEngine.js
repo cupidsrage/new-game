@@ -50,7 +50,10 @@ class GameEngine {
             mana: Math.floor(player.mana),
             population: Math.floor(player.population),
             land: player.land,
-            totalLand: player.total_land
+            totalLand: player.total_land,
+            goldRate: production.gold,
+            manaRate: production.mana,
+            populationRate: production.population
           });
         }
       } catch (error) {
@@ -99,6 +102,13 @@ class GameEngine {
       mana: manaPerSecond,
       population: populationPerSecond
     };
+  }
+
+  getProductionRates(playerId) {
+    const player = this.db.getPlayer(playerId);
+    if (!player) return null;
+
+    return this.calculateProduction(player);
   }
 
   processQueues() {
