@@ -21,7 +21,7 @@ A fully-featured real-time multiplayer strategy game inspired by Archmage, built
 - **Curse Spells**: Weakness, Confusion, Steal Mana
 
 ### 🦸 Heroes
-**5 Unique Heroes with Special Abilities:**
+**Hero progression with level-gated abilities:**
 
 1. **Warlord Grimfang** (Warrior) - Rally Troops, Defensive Stance, War Cry
 2. **Archmage Zarathus** (Mage) - Spell Mastery, Arcane Explosion, Mana Fountain
@@ -42,7 +42,8 @@ A fully-featured real-time multiplayer strategy game inspired by Archmage, built
 ### 💎 Items & Equipment
 - Legendary weapons and armor
 - Equipment system for heroes
-- Black market for trading
+- Black market hero auctions with player bidding
+- Heroes appear in the black market at random levels
 
 ### 🎮 Real-Time Mechanics
 - Resources tick every second

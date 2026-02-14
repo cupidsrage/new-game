@@ -607,18 +607,21 @@ const HEROES = {
         id: 'rally_troops',
         name: 'Rally Troops',
         cooldown: 1800,
+        unlockLevel: 1,
         effect: 'Increase all unit attack by 50% for 1 hour'
       },
       {
         id: 'defensive_stance',
         name: 'Defensive Stance',
         cooldown: 2400,
+        unlockLevel: 3,
         effect: 'Increase all unit defense by 75% for 1 hour'
       },
       {
         id: 'war_cry',
         name: 'War Cry',
         cooldown: 3600,
+        unlockLevel: 5,
         effect: 'Terrify enemies, reducing their attack by 30% for 2 hours'
       }
     ]
@@ -641,18 +644,21 @@ const HEROES = {
         id: 'spell_mastery',
         name: 'Spell Mastery',
         cooldown: 0,
+        unlockLevel: 1,
         effect: 'Reduce all spell cooldowns by 25% (passive)'
       },
       {
         id: 'arcane_explosion',
         name: 'Arcane Explosion',
         cooldown: 1200,
+        unlockLevel: 3,
         effect: 'Deal massive damage to target enemy army'
       },
       {
         id: 'mana_fountain',
         name: 'Mana Fountain',
         cooldown: 2400,
+        unlockLevel: 5,
         effect: 'Triple mana regeneration for 2 hours'
       }
     ]
@@ -674,18 +680,21 @@ const HEROES = {
         id: 'sabotage',
         name: 'Sabotage',
         cooldown: 1800,
+        unlockLevel: 1,
         effect: 'Destroy 10% of enemy buildings'
       },
       {
         id: 'steal_resources',
         name: 'Steal Resources',
         cooldown: 2400,
+        unlockLevel: 3,
         effect: 'Steal 15% of enemy gold and mana'
       },
       {
         id: 'assassination',
         name: 'Assassination',
         cooldown: 3600,
+        unlockLevel: 5,
         effect: 'Instantly kill 5% of enemy units'
       }
     ]
@@ -707,18 +716,21 @@ const HEROES = {
         id: 'divine_protection',
         name: 'Divine Protection',
         cooldown: 2400,
+        unlockLevel: 1,
         effect: 'Reduce incoming damage by 50% for 1 hour'
       },
       {
         id: 'mass_heal',
         name: 'Mass Heal',
         cooldown: 1800,
+        unlockLevel: 3,
         effect: 'Restore 30% of damaged units'
       },
       {
         id: 'blessing',
         name: 'Blessing of Fortune',
         cooldown: 3600,
+        unlockLevel: 5,
         effect: 'Double all resource production for 30 minutes'
       }
     ]
@@ -740,18 +752,21 @@ const HEROES = {
         id: 'death_aura',
         name: 'Death Aura',
         cooldown: 1200,
+        unlockLevel: 1,
         effect: 'Convert 10% of killed enemy units into undead'
       },
       {
         id: 'life_drain',
         name: 'Life Drain',
         cooldown: 1800,
+        unlockLevel: 3,
         effect: 'Drain enemy population to heal your units'
       },
       {
         id: 'army_of_darkness',
         name: 'Army of Darkness',
         cooldown: 3600,
+        unlockLevel: 5,
         effect: 'Summon massive undead army based on casualties dealt'
       }
     ]
@@ -773,18 +788,21 @@ const HEROES = {
         id: 'marked_prey',
         name: 'Marked Prey',
         cooldown: 1500,
+        unlockLevel: 1,
         effect: 'Expose target kingdom, increasing all incoming damage by 20% for 30 minutes'
       },
       {
         id: 'hail_of_bolts',
         name: 'Hail of Bolts',
         cooldown: 2100,
+        unlockLevel: 3,
         effect: 'Launch a precision volley that destroys 8% of enemy ranged and mage units'
       },
       {
         id: 'forest_ambush',
         name: 'Forest Ambush',
         cooldown: 3000,
+        unlockLevel: 5,
         effect: 'Grant your next attack +35% offensive power and reduced retaliation losses'
       }
     ]
@@ -807,18 +825,21 @@ const HEROES = {
         id: 'aegis_vow',
         name: 'Aegis Vow',
         cooldown: 1800,
+        unlockLevel: 1,
         effect: 'Reduce all incoming kingdom damage by 35% for 45 minutes'
       },
       {
         id: 'judgment_lance',
         name: 'Judgment Lance',
         cooldown: 2400,
+        unlockLevel: 3,
         effect: 'Smite enemy vanguard, eliminating 6% of cavalry and knight-class units'
       },
       {
         id: 'radiant_muster',
         name: 'Radiant Muster',
         cooldown: 3600,
+        unlockLevel: 5,
         effect: 'Increase militia, pikemen, and paladin attack/defense by 40% for 1 hour'
       }
     ]
@@ -841,18 +862,21 @@ const HEROES = {
         id: 'clockwork_legion',
         name: 'Clockwork Legion',
         cooldown: 2100,
+        unlockLevel: 1,
         effect: 'Instantly reinforce your army with temporary constructs equal to 12% of current forces'
       },
       {
         id: 'supply_overdrive',
         name: 'Supply Overdrive',
         cooldown: 2700,
+        unlockLevel: 3,
         effect: 'Increase gold and mana production by 60% and unit training speed by 30% for 30 minutes'
       },
       {
         id: 'runic_barrier_grid',
         name: 'Runic Barrier Grid',
         cooldown: 3300,
+        unlockLevel: 5,
         effect: 'Deploy layered warding that grants +50% building resilience for 1 hour'
       }
     ]
