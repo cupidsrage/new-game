@@ -223,11 +223,15 @@ function formatRate(value) {
 }
 
 // Tab management
-function showTab(tabName) {
+function showTab(tabName, event) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     
-    event.target.classList.add('active');
+    const clickedTab = event?.currentTarget || Array.from(document.querySelectorAll('.tab-btn'))
+        .find(btn => btn.getAttribute('onclick')?.includes(`showTab('${tabName}'`));
+    if (clickedTab) {
+        clickedTab.classList.add('active');
+    }
     document.getElementById(tabName + 'Tab').classList.add('active');
 
     if (tabName === 'military') {
@@ -442,11 +446,15 @@ function renderSpells() {
     }
 }
 
-function filterSpells(school) {
+function filterSpells(school, event) {
     currentSpellFilter = school;
     
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    const clickedFilter = event?.currentTarget || Array.from(document.querySelectorAll('.filter-btn'))
+        .find(btn => btn.getAttribute('onclick')?.includes(`filterSpells('${school}'`));
+    if (clickedFilter) {
+        clickedFilter.classList.add('active');
+    }
     
     renderSpells();
 }
