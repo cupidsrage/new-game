@@ -243,8 +243,10 @@ io.on('connection', (socket) => {
     socket.emit('expandLandResult', result);
 
     if (result.success) {
+      const player = db.getPlayer(playerId);
       socket.emit('resourceUpdate', {
-        gold: result.newLand
+        gold: player.gold,
+        land: player.land
       });
     }
   });
