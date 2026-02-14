@@ -73,7 +73,7 @@ class GameEngine {
   }
 
   calculateProduction(player) {
-    let goldPerSecond = GAME_CONFIG.BASE_GOLD_INCOME;
+    let grossGoldPerSecond = GAME_CONFIG.BASE_GOLD_INCOME;
     let manaPerSecond = GAME_CONFIG.BASE_MANA_INCOME;
     let populationPerSecond = GAME_CONFIG.BASE_POPULATION_GROWTH / 60; // Per second
 
@@ -83,7 +83,7 @@ class GameEngine {
       if (!building) continue;
 
       if (building.goldPerSecond) {
-        goldPerSecond += building.goldPerSecond * amount;
+        grossGoldPerSecond += building.goldPerSecond * amount;
       }
       if (building.manaPerSecond) {
         manaPerSecond += building.manaPerSecond * amount;
@@ -108,21 +108,21 @@ class GameEngine {
       totalUpkeepGoldPerSecond += heroDefinition.upkeepGoldPerSecond;
     }
 
-    goldPerSecond -= totalUpkeepGoldPerSecond;
-
     // Apply active effects/buffs
     const now = Date.now();
     for (const effect of player.activeEffects || []) {
       if (effect.expires_at > now) {
         if (effect.effect_type === 'buff_resource') {
           if (effect.source === 'gold') {
-            goldPerSecond *= effect.multiplier;
+            grossGoldPerSecond *= effect.multiplier;
           } else if (effect.source === 'mana') {
             manaPerSecond *= effect.multiplier;
           }
         }
       }
     }
+
+    const goldPerSecond = grossGoldPerSecond - totalUpkeepGoldPerSecond;
 
     return {
       gold: goldPerSecond,
@@ -512,6 +512,30 @@ class GameEngine {
         await this.db.updateUnits(caster.id, effect.unitType, currentAmount + effect.amount);
         await this.db.addMessage(caster.id, effect.message, 'success');
         break;
+
+      case 'dragon_attack': {
+        const currentDragons = caster.units.dragons || 0;
+        await this.db.updateUnits(caster.id, 'dragons', currentDragons + 1);
+
+        if (target) {
+          const totalUnits = Object.values(target.units || {}).reduce((sum, amount) => sum + amount, 0);
+          const unitsToKill = Math.floor(totalUnits * effect.damage);
+          let remaining = unitsToKill;
+
+          for (const [unitType, amount] of Object.entries(target.units || {})) {
+            if (remaining <= 0) break;
+            const killed = Math.min(amount, remaining);
+            await this.db.updateUnits(target.id, unitType, amount - killed);
+            remaining -= killed;
+          }
+
+          await this.db.addMessage(target.id, effect.message, 'combat');
+          this.io.to(target.id).emit('attacked', { message: effect.message });
+        }
+
+        await this.db.addMessage(caster.id, effect.message, 'success');
+        break;
+      }
 
       case 'instant_resource':
         caster.gold += effect.gold || 0;

@@ -143,6 +143,13 @@ function connectToServer() {
         updatePlayerInfo();
     });
 
+    socket.on('unitsUpdate', (units) => {
+        player.units = units || {};
+        if (document.getElementById('militaryTab').classList.contains('active')) {
+            renderUnitsStats();
+        }
+    });
+
     socket.on('trainingComplete', (data) => {
         showNotification(`Training complete: ${data.amount} ${data.unitType}`, 'success');
         player.units[data.unitType] = (player.units[data.unitType] || 0) + data.amount;
