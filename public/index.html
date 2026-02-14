@@ -71,13 +71,13 @@
 
         <div class="game-container">
             <nav class="game-tabs">
-                <button class="tab-btn active" onclick="showTab('kingdom', event)">🏰 Kingdom</button>
-                <button class="tab-btn" onclick="showTab('military', event)">⚔️ Military</button>
-                <button class="tab-btn" onclick="showTab('magic', event)">🔮 Magic</button>
-                <button class="tab-btn" onclick="showTab('heroes', event)">🦸 Heroes</button>
-                <button class="tab-btn" onclick="showTab('market', event)">🏪 Market</button>
-                <button class="tab-btn" onclick="showTab('combat', event)">⚔️ Combat</button>
-                <button class="tab-btn" onclick="showTab('leaderboard', event)">🏆 Leaderboard</button>
+                <button class="tab-btn active" onclick="showTab('kingdom', this)">🏰 Kingdom</button>
+                <button class="tab-btn" onclick="showTab('military', this)">⚔️ Military</button>
+                <button class="tab-btn" onclick="showTab('magic', this)">🔮 Magic</button>
+                <button class="tab-btn" onclick="showTab('heroes', this)">🦸 Heroes</button>
+                <button class="tab-btn" onclick="showTab('market', this)">🏪 Market</button>
+                <button class="tab-btn" onclick="showTab('combat', this)">⚔️ Combat</button>
+                <button class="tab-btn" onclick="showTab('leaderboard', this)">🏆 Leaderboard</button>
             </nav>
 
             <div class="content-area">
@@ -127,12 +127,12 @@
                     <h2>Spell Book</h2>
                     
                     <div class="spell-filters">
-                        <button onclick="filterSpells('all', event)" class="filter-btn active">All</button>
-                        <button onclick="filterSpells('combat', event)" class="filter-btn">⚔️ Combat</button>
-                        <button onclick="filterSpells('economic', event)" class="filter-btn">💰 Economic</button>
-                        <button onclick="filterSpells('strategic', event)" class="filter-btn">🎯 Strategic</button>
-                        <button onclick="filterSpells('enchantment', event)" class="filter-btn">✨ Enchantment</button>
-                        <button onclick="filterSpells('summoning', event)" class="filter-btn">👹 Summoning</button>
+                        <button onclick="filterSpells('all', this)" class="filter-btn active">All</button>
+                        <button onclick="filterSpells('combat', this)" class="filter-btn">⚔️ Combat</button>
+                        <button onclick="filterSpells('economic', this)" class="filter-btn">💰 Economic</button>
+                        <button onclick="filterSpells('strategic', this)" class="filter-btn">🎯 Strategic</button>
+                        <button onclick="filterSpells('enchantment', this)" class="filter-btn">✨ Enchantment</button>
+                        <button onclick="filterSpells('summoning', this)" class="filter-btn">👹 Summoning</button>
                     </div>
 
                     <div id="spellsList" class="spells-grid"></div>
