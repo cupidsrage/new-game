@@ -4,7 +4,12 @@ const { SPELLS, HEROES, ITEMS, UNIT_TYPES, BUILDING_TYPES } = require('../../sha
 function registerHttpRoutes(app, { db, sessions }) {
   app.post('/api/register', async (req, res) => {
     try {
-      const { username, password, email } = req.body;
+      const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
+      const password = req.body.password;
+      const email = typeof req.body.email === 'string' && req.body.email.trim() !== ''
+        ? req.body.email.trim()
+        : null;
+
       if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
       if (username.length < 3 || username.length > 20) return res.status(400).json({ error: 'Username must be 3-20 characters' });
 
