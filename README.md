@@ -181,6 +181,7 @@ For production on Railway, attach a volume so account data survives redeploys/re
 ### Resource Production
 - **Base Income**: 10 gold/s, 5 mana/s, 1 population/min
 - **Building Bonuses**: Stack with base production
+- **Army & Hero Upkeep**: Troops and recruited heroes consume gold each second
 - **Spell Buffs**: Temporary multipliers (e.g., Prosperity = 1.5x gold)
 - **Active Effects**: Can have up to 10 buffs simultaneously
 

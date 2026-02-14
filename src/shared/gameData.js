@@ -375,6 +375,7 @@ const UNIT_TYPES = {
     goldCost: 50,
     populationCost: 1,
     trainingTime: 10, // seconds
+    upkeepGoldPerSecond: 0.05,
     attack: 1,
     defense: 1,
     description: 'Basic infantry units'
@@ -385,6 +386,7 @@ const UNIT_TYPES = {
     goldCost: 100,
     populationCost: 1,
     trainingTime: 15,
+    upkeepGoldPerSecond: 0.09,
     attack: 3,
     defense: 1,
     description: 'Ranged units with higher attack'
@@ -395,6 +397,7 @@ const UNIT_TYPES = {
     goldCost: 200,
     populationCost: 2,
     trainingTime: 30,
+    upkeepGoldPerSecond: 0.18,
     attack: 5,
     defense: 3,
     description: 'Fast, powerful mounted units'
@@ -405,6 +408,7 @@ const UNIT_TYPES = {
     goldCost: 500,
     populationCost: 3,
     trainingTime: 60,
+    upkeepGoldPerSecond: 0.45,
     attack: 10,
     defense: 8,
     description: 'Elite armored warriors'
@@ -416,6 +420,7 @@ const UNIT_TYPES = {
     manaCost: 100,
     populationCost: 2,
     trainingTime: 90,
+    upkeepGoldPerSecond: 0.55,
     attack: 15,
     defense: 5,
     description: 'Powerful spellcasters'
@@ -426,6 +431,7 @@ const UNIT_TYPES = {
     goldCost: 140,
     populationCost: 1,
     trainingTime: 20,
+    upkeepGoldPerSecond: 0.12,
     attack: 3,
     defense: 3,
     description: 'Disciplined spear infantry that counters cavalry charges'
@@ -436,6 +442,7 @@ const UNIT_TYPES = {
     goldCost: 240,
     populationCost: 1,
     trainingTime: 28,
+    upkeepGoldPerSecond: 0.2,
     attack: 6,
     defense: 2,
     description: 'Heavy ranged infantry with high armor-piercing damage'
@@ -447,6 +454,7 @@ const UNIT_TYPES = {
     manaCost: 40,
     populationCost: 3,
     trainingTime: 75,
+    upkeepGoldPerSecond: 0.5,
     attack: 12,
     defense: 11,
     description: 'Holy heavy cavalry with exceptional frontline durability'
@@ -458,6 +466,7 @@ const UNIT_TYPES = {
     manaCost: 180,
     populationCost: 2,
     trainingTime: 110,
+    upkeepGoldPerSecond: 0.65,
     attack: 19,
     defense: 6,
     description: 'Dark casters focused on destructive battlefield magic'
@@ -469,6 +478,7 @@ const UNIT_TYPES = {
     manaCost: 0,
     populationCost: 0,
     trainingTime: 0,
+    upkeepGoldPerSecond: 0.28,
     attack: 12,
     defense: 10,
     description: 'Magical beings summoned by spells'
@@ -480,6 +490,7 @@ const UNIT_TYPES = {
     manaCost: 0,
     populationCost: 0,
     trainingTime: 0,
+    upkeepGoldPerSecond: 0.38,
     attack: 20,
     defense: 15,
     description: 'Fearsome creatures from the abyss'
@@ -491,6 +502,7 @@ const UNIT_TYPES = {
     manaCost: 0,
     populationCost: 0,
     trainingTime: 0,
+    upkeepGoldPerSecond: 0.24,
     attack: 8,
     defense: 12,
     description: 'Risen corpses that never tire'
@@ -502,6 +514,7 @@ const UNIT_TYPES = {
     manaCost: 0,
     populationCost: 0,
     trainingTime: 0,
+    upkeepGoldPerSecond: 1.5,
     attack: 50,
     defense: 40,
     description: 'Ancient dragons of immense power'
@@ -582,6 +595,7 @@ const HEROES = {
     name: 'Warlord Grimfang',
     class: 'Warrior',
     goldCost: 5000,
+    upkeepGoldPerSecond: 2,
     description: 'Master of combat and military tactics',
     baseStats: {
       attack: 100,
@@ -614,6 +628,7 @@ const HEROES = {
     name: 'Archmage Zarathus',
     class: 'Mage',
     goldCost: 5000,
+    upkeepGoldPerSecond: 2,
     description: 'Supreme master of magical arts',
     baseStats: {
       attack: 150,
@@ -647,6 +662,7 @@ const HEROES = {
     name: 'Shadow Nightblade',
     class: 'Rogue',
     goldCost: 5000,
+    upkeepGoldPerSecond: 2,
     description: 'Master of espionage and subterfuge',
     baseStats: {
       attack: 120,
@@ -679,6 +695,7 @@ const HEROES = {
     name: 'High Priest Luminara',
     class: 'Priest',
     goldCost: 5000,
+    upkeepGoldPerSecond: 2,
     description: 'Divine healer and protector',
     baseStats: {
       attack: 60,
@@ -711,6 +728,7 @@ const HEROES = {
     name: 'Lord Mortis',
     class: 'Necromancer',
     goldCost: 5000,
+    upkeepGoldPerSecond: 2,
     description: 'Master of death and the undead',
     baseStats: {
       attack: 140,
@@ -743,6 +761,7 @@ const HEROES = {
     name: 'Sylvan Huntmaster Kael',
     class: 'Ranger',
     goldCost: 5500,
+    upkeepGoldPerSecond: 2.2,
     description: 'Tactical skirmisher commanding elite ranged formations',
     baseStats: {
       attack: 135,
@@ -775,6 +794,7 @@ const HEROES = {
     name: 'Lady Seraphine Dawnshield',
     class: 'Paladin',
     goldCost: 6000,
+    upkeepGoldPerSecond: 2.4,
     description: 'Holy champion who inspires armies and shields allied troops',
     baseStats: {
       attack: 110,
@@ -808,6 +828,7 @@ const HEROES = {
     name: 'Master Artificer Voltren',
     class: 'Artificer',
     goldCost: 6200,
+    upkeepGoldPerSecond: 2.5,
     description: 'Arcane engineer specializing in logistics and battlefield constructs',
     baseStats: {
       attack: 95,
