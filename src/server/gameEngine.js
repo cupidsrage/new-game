@@ -41,7 +41,7 @@ class GameEngine {
         player.population = Math.max(0, player.population + production.population);
 
         // Save to database
-        this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land);
+        this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
         // Emit update to client
         if (this.io) {
@@ -49,7 +49,8 @@ class GameEngine {
             gold: Math.floor(player.gold),
             mana: Math.floor(player.mana),
             population: Math.floor(player.population),
-            land: player.land
+            land: player.land,
+            totalLand: player.total_land
           });
         }
       } catch (error) {
@@ -182,7 +183,7 @@ class GameEngine {
     player.gold -= totalGoldCost;
     player.mana -= totalManaCost;
     player.population -= totalPopulationCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land);
+    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Add to training queue
     const baseTime = unit.trainingTime * amount;
@@ -233,7 +234,7 @@ class GameEngine {
     // Deduct resources
     player.gold -= totalGoldCost;
     player.land -= totalLandCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land);
+    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Add to building queue
     let buildTime = building.buildTime * amount;
@@ -284,7 +285,7 @@ class GameEngine {
 
     // Deduct mana
     player.mana -= spell.manaCost;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land);
+    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     // Set cooldown
     const readyAt = Date.now() + (spell.cooldown * 1000);
@@ -361,7 +362,7 @@ class GameEngine {
       case 'instant_resource':
         caster.gold += effect.gold || 0;
         caster.mana += effect.mana || 0;
-        this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land);
+        this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
         this.db.addMessage(caster.id, effect.message, 'success');
         break;
 
@@ -370,8 +371,8 @@ class GameEngine {
           const amount = Math.floor(target[effect.resource] * effect.percentage);
           target[effect.resource] -= amount;
           caster[effect.resource] += amount;
-          this.db.updatePlayerResources(target.id, target.gold, target.mana, target.population, target.land);
-          this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land);
+          this.db.updatePlayerResources(target.id, target.gold, target.mana, target.population, target.land, target.total_land);
+          this.db.updatePlayerResources(caster.id, caster.gold, caster.mana, caster.population, caster.land, caster.total_land);
           this.db.addMessage(target.id, effect.message, 'combat');
         }
         break;
@@ -458,15 +459,17 @@ class GameEngine {
 
     if (victory) {
       goldStolen = Math.floor(defender.gold * 0.10);
-      landCaptured = Math.floor(defender.land * 0.05);
+      landCaptured = Math.floor(defender.total_land * 0.05);
 
       attacker.gold += goldStolen;
       attacker.land += landCaptured;
+      attacker.total_land += landCaptured;
       defender.gold -= goldStolen;
-      defender.land -= landCaptured;
+      defender.land = Math.max(0, defender.land - landCaptured);
+      defender.total_land = Math.max(0, defender.total_land - landCaptured);
 
-      this.db.updatePlayerResources(attackerId, attacker.gold, attacker.mana, attacker.population, attacker.land);
-      this.db.updatePlayerResources(defenderId, defender.gold, defender.mana, defender.population, defender.land);
+      this.db.updatePlayerResources(attackerId, attacker.gold, attacker.mana, attacker.population, attacker.land, attacker.total_land);
+      this.db.updatePlayerResources(defenderId, defender.gold, defender.mana, defender.population, defender.land, defender.total_land);
 
       // Update win/loss records
       this.db.db.prepare('UPDATE players SET wins = wins + 1, total_attacks = total_attacks + 1 WHERE id = ?').run(attackerId);
@@ -512,7 +515,7 @@ class GameEngine {
     const player = this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
-    const totalCost = GAME_CONFIG.LAND_EXPANSION_COST * amount * (1 + player.land / 100);
+    const totalCost = GAME_CONFIG.LAND_EXPANSION_COST * amount * (1 + player.total_land / 100);
 
     if (player.gold < totalCost) {
       return { success: false, error: 'Not enough gold' };
@@ -520,11 +523,13 @@ class GameEngine {
 
     player.gold -= totalCost;
     player.land += amount;
-    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land);
+    player.total_land += amount;
+    this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
 
     return {
       success: true,
       newLand: player.land,
+      newTotalLand: player.total_land,
       cost: totalCost
     };
   }
