@@ -171,13 +171,15 @@ io.on('connection', (socket) => {
     const buildingQueue = db.getBuildingQueue(playerId);
     const cooldowns = db.getSpellCooldowns(playerId);
     const messages = db.getMessages(playerId);
+    const heroMarketListings = gameEngine.getHeroMarketListings();
 
     socket.emit('initialData', {
       trainingQueue,
       buildingQueue,
       cooldowns,
       messages,
-      productionRates
+      productionRates,
+      heroMarketListings
     });
   });
 
@@ -291,6 +293,29 @@ io.on('connection', (socket) => {
         buildings: targetPlayer.buildings
       })
     });
+  });
+
+
+  socket.on('getHeroMarketListings', () => {
+    const heroMarketListings = gameEngine.getHeroMarketListings();
+    socket.emit('heroMarketUpdate', heroMarketListings);
+  });
+
+  socket.on('bidOnHero', (data) => {
+    if (!playerId) return;
+
+    const listingId = Number(data.listingId);
+    const bidAmount = Number(data.bidAmount);
+
+    const result = gameEngine.bidOnHeroMarket(playerId, listingId, bidAmount);
+    socket.emit('bidOnHeroResult', result);
+
+    if (result.success) {
+      const player = db.getPlayer(playerId);
+      socket.emit('resourceUpdate', {
+        gold: player.gold
+      });
+    }
   });
 
   socket.on('getMessages', () => {

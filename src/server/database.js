@@ -188,6 +188,33 @@ class GameDatabase {
       )
     `);
 
+    // Hero black market auction listings
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS hero_market_listings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hero_id TEXT NOT NULL,
+        hero_level INTEGER NOT NULL,
+        starting_bid REAL NOT NULL,
+        listed_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active'
+      )
+    `);
+
+    // Hero black market bids (escrowed immediately)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS hero_market_bids (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        listing_id INTEGER NOT NULL,
+        player_id TEXT NOT NULL,
+        bid_amount REAL NOT NULL,
+        bid_at INTEGER NOT NULL,
+        FOREIGN KEY (listing_id) REFERENCES hero_market_listings(id) ON DELETE CASCADE,
+        FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+        UNIQUE(listing_id, player_id)
+      )
+    `);
+
     // Messages/notifications table
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS messages (
@@ -326,6 +353,167 @@ class GameDatabase {
       VALUES (?, ?, ?, ?, ?)
     `);
     stmt.run(playerId, unitType, amount, Date.now(), completesAt);
+  }
+
+  // Hero methods
+  addHeroToPlayer(playerId, heroId, level, stats) {
+    const stmt = this.db.prepare(`
+      INSERT INTO player_heroes (player_id, hero_id, level, experience, health, max_health, attack, defense, equipped)
+      VALUES (?, ?, ?, 0, ?, ?, ?, ?, 0)
+    `);
+
+    stmt.run(playerId, heroId, level, stats.health, stats.health, stats.attack, stats.defense);
+  }
+
+  // Hero black market methods
+  createHeroMarketListing(heroId, heroLevel, startingBid, expiresAt) {
+    const now = Date.now();
+    const stmt = this.db.prepare(`
+      INSERT INTO hero_market_listings (hero_id, hero_level, starting_bid, listed_at, expires_at, status)
+      VALUES (?, ?, ?, ?, ?, 'active')
+    `);
+
+    const result = stmt.run(heroId, heroLevel, startingBid, now, expiresAt);
+    return this.getHeroMarketListing(result.lastInsertRowid);
+  }
+
+  getHeroMarketListings() {
+    const stmt = this.db.prepare(`
+      SELECT l.id, l.hero_id, l.hero_level, l.starting_bid, l.listed_at, l.expires_at, l.status,
+             b.player_id AS highest_bidder_id, b.bid_amount AS highest_bid
+      FROM hero_market_listings l
+      LEFT JOIN hero_market_bids b ON b.id = (
+        SELECT id FROM hero_market_bids WHERE listing_id = l.id ORDER BY bid_amount DESC, bid_at ASC LIMIT 1
+      )
+      WHERE l.status = 'active'
+      ORDER BY l.expires_at ASC
+    `);
+
+    return stmt.all();
+  }
+
+  getHeroMarketListing(listingId) {
+    const stmt = this.db.prepare(`
+      SELECT * FROM hero_market_listings WHERE id = ?
+    `);
+
+    return stmt.get(listingId);
+  }
+
+  getHeroMarketListingWithHighestBid(listingId) {
+    const stmt = this.db.prepare(`
+      SELECT l.id, l.hero_id, l.hero_level, l.starting_bid, l.listed_at, l.expires_at, l.status,
+             b.player_id AS highest_bidder_id, b.bid_amount AS highest_bid
+      FROM hero_market_listings l
+      LEFT JOIN hero_market_bids b ON b.id = (
+        SELECT id FROM hero_market_bids WHERE listing_id = l.id ORDER BY bid_amount DESC, bid_at ASC LIMIT 1
+      )
+      WHERE l.id = ?
+    `);
+
+    return stmt.get(listingId);
+  }
+
+  placeHeroMarketBid(listingId, playerId, bidAmount) {
+    const tx = this.db.transaction((listingIdArg, playerIdArg, bidAmountArg) => {
+      const listing = this.db.prepare('SELECT * FROM hero_market_listings WHERE id = ?').get(listingIdArg);
+      if (!listing || listing.status !== 'active' || listing.expires_at <= Date.now()) {
+        return { success: false, error: 'Listing is no longer active' };
+      }
+
+      const highestBid = this.db.prepare(`
+        SELECT * FROM hero_market_bids WHERE listing_id = ? ORDER BY bid_amount DESC, bid_at ASC LIMIT 1
+      `).get(listingIdArg);
+
+      const minimumBid = highestBid ? highestBid.bid_amount + 1 : listing.starting_bid;
+      if (bidAmountArg < minimumBid) {
+        return { success: false, error: `Bid must be at least ${Math.floor(minimumBid)} gold` };
+      }
+
+      const player = this.db.prepare('SELECT id, gold FROM players WHERE id = ?').get(playerIdArg);
+      if (!player) {
+        return { success: false, error: 'Player not found' };
+      }
+
+      if (player.gold < bidAmountArg) {
+        return { success: false, error: 'Not enough gold to place bid' };
+      }
+
+      // Deduct bidder gold as escrow.
+      this.db.prepare('UPDATE players SET gold = gold - ? WHERE id = ?').run(bidAmountArg, playerIdArg);
+
+      const previousOwnBid = this.db.prepare('SELECT * FROM hero_market_bids WHERE listing_id = ? AND player_id = ?').get(listingIdArg, playerIdArg);
+      if (previousOwnBid) {
+        this.db.prepare('UPDATE players SET gold = gold + ? WHERE id = ?').run(previousOwnBid.bid_amount, playerIdArg);
+        this.db.prepare('DELETE FROM hero_market_bids WHERE id = ?').run(previousOwnBid.id);
+      }
+
+      // Refund previous highest bidder if outbid.
+      if (highestBid && highestBid.player_id !== playerIdArg) {
+        this.db.prepare('UPDATE players SET gold = gold + ? WHERE id = ?').run(highestBid.bid_amount, highestBid.player_id);
+        this.db.prepare('DELETE FROM hero_market_bids WHERE id = ?').run(highestBid.id);
+      }
+
+      this.db.prepare(`
+        INSERT INTO hero_market_bids (listing_id, player_id, bid_amount, bid_at)
+        VALUES (?, ?, ?, ?)
+      `).run(listingIdArg, playerIdArg, bidAmountArg, Date.now());
+
+      return { success: true };
+    });
+
+    return tx(listingId, playerId, bidAmount);
+  }
+
+  getExpiredHeroListings(now = Date.now()) {
+    const stmt = this.db.prepare(`
+      SELECT * FROM hero_market_listings
+      WHERE status = 'active' AND expires_at <= ?
+      ORDER BY expires_at ASC
+    `);
+
+    return stmt.all(now);
+  }
+
+  completeHeroListing(listingId) {
+    const tx = this.db.transaction((listingIdArg) => {
+      const listing = this.db.prepare('SELECT * FROM hero_market_listings WHERE id = ?').get(listingIdArg);
+      if (!listing || listing.status !== 'active') {
+        return null;
+      }
+
+      const highestBid = this.db.prepare(`
+        SELECT * FROM hero_market_bids WHERE listing_id = ? ORDER BY bid_amount DESC, bid_at ASC LIMIT 1
+      `).get(listingIdArg);
+
+      this.db.prepare("UPDATE hero_market_listings SET status = 'sold' WHERE id = ?").run(listingIdArg);
+      this.db.prepare('DELETE FROM hero_market_bids WHERE listing_id = ?').run(listingIdArg);
+
+      return { listing, highestBid };
+    });
+
+    return tx(listingId);
+  }
+
+  cancelHeroListing(listingId) {
+    const tx = this.db.transaction((listingIdArg) => {
+      const listing = this.db.prepare('SELECT * FROM hero_market_listings WHERE id = ?').get(listingIdArg);
+      if (!listing || listing.status !== 'active') {
+        return null;
+      }
+
+      const bids = this.db.prepare('SELECT * FROM hero_market_bids WHERE listing_id = ?').all(listingIdArg);
+      for (const bid of bids) {
+        this.db.prepare('UPDATE players SET gold = gold + ? WHERE id = ?').run(bid.bid_amount, bid.player_id);
+      }
+
+      this.db.prepare("UPDATE hero_market_listings SET status = 'cancelled' WHERE id = ?").run(listingIdArg);
+      this.db.prepare('DELETE FROM hero_market_bids WHERE listing_id = ?').run(listingIdArg);
+
+      return { listing };
+    });
+
+    return tx(listingId);
   }
 
   getTrainingQueue(playerId) {

@@ -5,6 +5,11 @@ class GameEngine {
     this.db = database;
     this.io = io;
     this.players = new Map();
+    this.heroMarketConfig = {
+      minListingDurationSeconds: 120,
+      maxListingDurationSeconds: 360,
+      maxActiveListings: 6
+    };
     this.startGameLoop();
   }
 
@@ -23,6 +28,11 @@ class GameEngine {
     setInterval(() => {
       this.db.cleanExpiredEffects();
     }, 60000);
+
+    // Resolve hero market listings and generate fresh listings
+    setInterval(() => {
+      this.processHeroMarket();
+    }, 5000);
   }
 
   tick() {
@@ -178,6 +188,123 @@ class GameEngine {
 
   registerPlayer(playerId, socketId) {
     this.players.set(playerId, { socketId, lastUpdate: Date.now() });
+    this.ensureHeroMarketSupply();
+    this.emitHeroMarketUpdate();
+  }
+
+
+  getRandomHeroMarketLevel() {
+    const roll = Math.random();
+    if (roll < 0.45) return 1;
+    if (roll < 0.75) return 2;
+    if (roll < 0.92) return 3;
+    if (roll < 0.98) return 4;
+    return 5;
+  }
+
+  scaleHeroStats(heroDefinition, level) {
+    const levelMultiplier = 1 + ((level - 1) * 0.12);
+    return {
+      attack: Math.floor((heroDefinition.baseStats.attack || 0) * levelMultiplier),
+      defense: Math.floor((heroDefinition.baseStats.defense || 0) * levelMultiplier),
+      health: Math.floor((heroDefinition.baseStats.health || 0) * levelMultiplier)
+    };
+  }
+
+  generateHeroMarketListing() {
+    const heroPool = Object.values(HEROES);
+    if (!heroPool.length) return null;
+
+    const hero = heroPool[Math.floor(Math.random() * heroPool.length)];
+    const heroLevel = this.getRandomHeroMarketLevel();
+    const durationSeconds = this.heroMarketConfig.minListingDurationSeconds +
+      Math.floor(Math.random() * (this.heroMarketConfig.maxListingDurationSeconds - this.heroMarketConfig.minListingDurationSeconds + 1));
+
+    const startingBid = Math.floor(hero.goldCost * (0.65 + (heroLevel * 0.18)));
+    return this.db.createHeroMarketListing(hero.id, heroLevel, startingBid, Date.now() + (durationSeconds * 1000));
+  }
+
+  ensureHeroMarketSupply() {
+    const active = this.db.getHeroMarketListings();
+    const needed = this.heroMarketConfig.maxActiveListings - active.length;
+
+    if (needed <= 0) return;
+
+    for (let i = 0; i < needed; i += 1) {
+      this.generateHeroMarketListing();
+    }
+  }
+
+  emitHeroMarketUpdate() {
+    if (!this.io) return;
+
+    const listings = this.db.getHeroMarketListings().map((listing) => ({
+      ...listing,
+      timeLeftSeconds: Math.max(0, Math.ceil((listing.expires_at - Date.now()) / 1000))
+    }));
+
+    this.io.emit('heroMarketUpdate', listings);
+  }
+
+  processHeroMarket() {
+    const expiredListings = this.db.getExpiredHeroListings();
+
+    for (const listing of expiredListings) {
+      const resolved = this.db.completeHeroListing(listing.id);
+      if (!resolved) continue;
+
+      const { listing: completedListing, highestBid } = resolved;
+      const heroDefinition = HEROES[(completedListing.hero_id || '').toUpperCase()];
+
+      if (!heroDefinition || !highestBid) {
+        continue;
+      }
+
+      const stats = this.scaleHeroStats(heroDefinition, completedListing.hero_level);
+      this.db.addHeroToPlayer(highestBid.player_id, completedListing.hero_id, completedListing.hero_level, stats);
+      this.db.addMessage(highestBid.player_id,
+        `You won ${heroDefinition.name} (Level ${completedListing.hero_level}) for ${Math.floor(highestBid.bid_amount)} gold in the Black Market!`,
+        'success');
+
+      const winner = this.db.getPlayer(highestBid.player_id);
+      this.io.to(highestBid.player_id).emit('heroWon', {
+        heroId: completedListing.hero_id,
+        heroLevel: completedListing.hero_level,
+        finalBid: highestBid.bid_amount
+      });
+      this.io.to(highestBid.player_id).emit('heroInventoryUpdate', winner.heroes || []);
+    }
+
+    this.ensureHeroMarketSupply();
+    this.emitHeroMarketUpdate();
+  }
+
+  getHeroMarketListings() {
+    return this.db.getHeroMarketListings().map((listing) => ({
+      ...listing,
+      timeLeftSeconds: Math.max(0, Math.ceil((listing.expires_at - Date.now()) / 1000))
+    }));
+  }
+
+  bidOnHeroMarket(playerId, listingId, bidAmount) {
+    const listing = this.db.getHeroMarketListingWithHighestBid(listingId);
+    if (!listing || listing.status !== 'active') {
+      return { success: false, error: 'Listing not found' };
+    }
+
+    if (listing.expires_at <= Date.now()) {
+      return { success: false, error: 'Listing already ended' };
+    }
+
+    const result = this.db.placeHeroMarketBid(listingId, playerId, bidAmount);
+    if (!result.success) {
+      return result;
+    }
+
+    this.db.addMessage(playerId, `Bid placed: ${Math.floor(bidAmount)} gold`, 'info');
+    this.emitHeroMarketUpdate();
+
+    return { success: true };
   }
 
   unregisterPlayer(playerId) {
