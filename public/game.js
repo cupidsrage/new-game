@@ -244,11 +244,11 @@ function formatRate(value) {
 }
 
 // Tab management
-function showTab(tabName, event) {
+function showTab(tabName, triggerElement = null) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    const clickedTab = event?.currentTarget || Array.from(document.querySelectorAll('.tab-btn'))
+
+    const clickedTab = triggerElement?.currentTarget || triggerElement || Array.from(document.querySelectorAll('.tab-btn'))
         .find(btn => btn.getAttribute('onclick')?.includes(`showTab('${tabName}'`));
     if (clickedTab) {
         clickedTab.classList.add('active');
@@ -481,11 +481,11 @@ function renderSpells() {
     }
 }
 
-function filterSpells(school, event) {
+function filterSpells(school, triggerElement = null) {
     currentSpellFilter = school;
-    
+
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    const clickedFilter = event?.currentTarget || Array.from(document.querySelectorAll('.filter-btn'))
+    const clickedFilter = triggerElement?.currentTarget || triggerElement || Array.from(document.querySelectorAll('.filter-btn'))
         .find(btn => btn.getAttribute('onclick')?.includes(`filterSpells('${school}'`));
     if (clickedFilter) {
         clickedFilter.classList.add('active');
