@@ -122,7 +122,11 @@ railway open
 
 ### Environment Variables
 
-Railway automatically provides `PORT` environment variable. No additional configuration needed!
+- `PORT` is provided automatically by Railway.
+- `GAME_DB_PATH` (optional) lets you set an explicit SQLite file location.
+- `RAILWAY_VOLUME_MOUNT_PATH` (set by Railway when a volume is attached) is used automatically to store `game.db` on persistent storage.
+
+For production on Railway, attach a volume so account data survives redeploys/restarts.
 
 ## How to Play
 

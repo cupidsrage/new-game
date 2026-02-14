@@ -1,12 +1,30 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcrypt');
 
+function resolveDatabasePath() {
+  if (process.env.GAME_DB_PATH) {
+    return process.env.GAME_DB_PATH;
+  }
+
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    return path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'game.db');
+  }
+
+  return path.join(__dirname, '../../game.db');
+}
+
 class GameDatabase {
-  constructor(dbPath = path.join(__dirname, '../../game.db')) {
+  constructor(dbPath = resolveDatabasePath()) {
+    const dbDir = path.dirname(dbPath);
+    fs.mkdirSync(dbDir, { recursive: true });
+
     this.db = new Database(dbPath);
     this.db.pragma('journal_mode = WAL');
     this.initializeTables();
+
+    console.log(`Using database at: ${dbPath}`);
   }
 
   initializeTables() {
