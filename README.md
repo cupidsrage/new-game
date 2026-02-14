@@ -67,12 +67,17 @@ cd archmage-realtime
 npm install
 ```
 
-3. **Run the server:**
+3. **Seed database tables/data (optional manual run):**
+```bash
+npm run seed
+```
+
+4. **Run the server:**
 ```bash
 npm start
 ```
 
-4. **Open your browser:**
+5. **Open your browser:**
 ```
 http://localhost:3000
 ```
