@@ -61,6 +61,7 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
       if (!result.success) return;
       const player = await db.getPlayer(playerId);
       socket.emit('resourceUpdate', { mana: player.mana });
+      socket.emit('unitsUpdate', player.units);
       socket.emit('cooldownUpdate', await db.getSpellCooldowns(playerId));
     });
 
