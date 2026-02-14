@@ -164,6 +164,8 @@ io.on('connection', (socket) => {
       }
     });
 
+    const productionRates = gameEngine.getProductionRates(playerId);
+
     // Send additional data
     const trainingQueue = db.getTrainingQueue(playerId);
     const buildingQueue = db.getBuildingQueue(playerId);
@@ -174,7 +176,8 @@ io.on('connection', (socket) => {
       trainingQueue,
       buildingQueue,
       cooldowns,
-      messages
+      messages,
+      productionRates
     });
   });
 

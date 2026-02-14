@@ -114,6 +114,10 @@ function connectToServer() {
         renderTrainingQueue(data.trainingQueue);
         renderBuildingQueue(data.buildingQueue);
         renderMessages(data.messages);
+
+        if (data.productionRates) {
+            updateResourceRates(data.productionRates);
+        }
     });
 
     socket.on('resourceUpdate', (resources) => {
@@ -122,6 +126,16 @@ function connectToServer() {
         if (resources.population !== undefined) player.population = resources.population;
         if (resources.land !== undefined) player.land = resources.land;
         if (resources.totalLand !== undefined) player.totalLand = resources.totalLand;
+
+        const hasRates = resources.goldRate !== undefined || resources.manaRate !== undefined || resources.populationRate !== undefined;
+        if (hasRates) {
+            updateResourceRates({
+                gold: resources.goldRate,
+                mana: resources.manaRate,
+                population: resources.populationRate
+            });
+        }
+
         updatePlayerInfo();
     });
 
@@ -188,6 +202,24 @@ function updatePlayerInfo() {
 
     const landCost = Math.floor(1000 * (1 + totalLand / 100));
     document.getElementById('landCost').textContent = landCost;
+}
+
+
+function updateResourceRates(rates) {
+    if (rates.gold !== undefined) {
+        document.getElementById('goldRate').textContent = formatRate(rates.gold);
+    }
+    if (rates.mana !== undefined) {
+        document.getElementById('manaRate').textContent = formatRate(rates.mana);
+    }
+    if (rates.population !== undefined) {
+        document.getElementById('populationRate').textContent = formatRate(rates.population);
+    }
+}
+
+function formatRate(value) {
+    const formattedValue = Number.isInteger(value) ? value : value.toFixed(2).replace(/\.00$/, '');
+    return `${value >= 0 ? '+' : ''}${formattedValue}/s`;
 }
 
 // Tab management
