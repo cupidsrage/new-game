@@ -133,8 +133,15 @@ function connectToServer() {
     });
 
     socket.on('buildingComplete', (data) => {
-        showNotification(`Construction complete: ${data.amount} ${data.buildingType}`, 'success');
+        const buildingDisplayName = Object.values(gameData?.buildingTypes || {})
+            .find(building => building.id === data.buildingType)?.name || data.buildingType;
+
+        showNotification(`Construction complete: ${data.amount} ${buildingDisplayName}`, 'success');
         player.buildings[data.buildingType] = (player.buildings[data.buildingType] || 0) + data.amount;
+
+        if (document.getElementById('kingdomTab').classList.contains('active')) {
+            renderBuildings();
+        }
     });
 
     socket.on('queueUpdate', (data) => {
