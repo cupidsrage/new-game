@@ -12,6 +12,7 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
 
         socket.join(playerId);
         await gameEngine.registerPlayer(playerId, socket.id);
+        await db.updateLastActive(playerId);
 
         socket.emit('authenticated', { player: {
           id: player.id, username: player.username, gold: player.gold, mana: player.mana,
@@ -135,7 +136,11 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
     socket.on('getMessages', async () => { if (playerId) socket.emit('messages', await db.getMessages(playerId)); });
     socket.on('markMessagesRead', async () => { if (playerId) await db.markMessagesRead(playerId); });
     socket.on('getCombatHistory', async () => { if (playerId) socket.emit('combatHistory', await db.getCombatHistory(playerId, 20)); });
-    socket.on('disconnect', () => { if (playerId) gameEngine.unregisterPlayer(playerId); });
+    socket.on('disconnect', async () => {
+      if (!playerId) return;
+      gameEngine.unregisterPlayer(playerId);
+      await db.updateLastActive(playerId);
+    });
   });
 }
 

@@ -3,6 +3,9 @@ let socket = null;
 let gameData = null;
 let player = null;
 let heroMarketListings = [];
+let trainingQueueData = [];
+let buildingQueueData = [];
+let queueRefreshTimer = null;
 let authToken = localStorage.getItem('authToken');
 
 // Initialize
@@ -81,6 +84,10 @@ async function login() {
 
 function logout() {
     localStorage.removeItem('authToken');
+    if (queueRefreshTimer) {
+        clearInterval(queueRefreshTimer);
+        queueRefreshTimer = null;
+    }
     location.reload();
 }
 
@@ -99,6 +106,7 @@ function showGame() {
 // Socket.IO connection
 function connectToServer() {
     socket = io();
+    startQueueRefreshLoop();
 
     socket.on('connect', () => {
         console.log('Connected to server');
@@ -344,16 +352,18 @@ function expandLand(amount) {
     });
 }
 
-function renderBuildingQueue(queue) {
+function renderBuildingQueue(queue = buildingQueueData) {
+    buildingQueueData = Array.isArray(queue) ? queue : [];
+
     const container = document.getElementById('buildingQueue');
     container.innerHTML = '';
 
-    if (queue.length === 0) {
+    if (buildingQueueData.length === 0) {
         container.innerHTML = '<p>No buildings in queue</p>';
         return;
     }
 
-    queue.forEach(item => {
+    buildingQueueData.forEach(item => {
         const timeLeft = Math.max(0, item.completes_at - Date.now());
         const progress = 100 - (timeLeft / (item.completes_at - item.started_at) * 100);
         
@@ -459,16 +469,18 @@ function disbandUnits(unitType) {
     });
 }
 
-function renderTrainingQueue(queue) {
+function renderTrainingQueue(queue = trainingQueueData) {
+    trainingQueueData = Array.isArray(queue) ? queue : [];
+
     const container = document.getElementById('trainingQueue');
     container.innerHTML = '';
 
-    if (queue.length === 0) {
+    if (trainingQueueData.length === 0) {
         container.innerHTML = '<p>No units in training</p>';
         return;
     }
 
-    queue.forEach(item => {
+    trainingQueueData.forEach(item => {
         const timeLeft = Math.max(0, item.completes_at - Date.now());
         const progress = 100 - (timeLeft / (item.completes_at - item.started_at) * 100);
         
@@ -846,6 +858,24 @@ function renderMessages(messages) {
     if (unreadCount > 0) {
         socket.emit('markMessagesRead');
     }
+}
+
+
+function startQueueRefreshLoop() {
+    if (queueRefreshTimer) return;
+
+    queueRefreshTimer = setInterval(() => {
+        renderTrainingQueue();
+        renderBuildingQueue();
+
+        if (heroMarketListings.length > 0 && document.getElementById('marketTab')?.classList.contains('active')) {
+            renderBlackMarket();
+        }
+
+        if (document.getElementById('magicTab')?.classList.contains('active')) {
+            renderSpells();
+        }
+    }, 1000);
 }
 
 // Utilities
