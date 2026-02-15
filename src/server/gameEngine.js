@@ -6,8 +6,8 @@ class GameEngine {
     this.io = io;
     this.players = new Map();
     this.heroMarketConfig = {
-      minListingDurationSeconds: 120,
-      maxListingDurationSeconds: 360,
+      minListingDurationSeconds: 24 * 60 * 60,
+      maxListingDurationSeconds: 24 * 60 * 60,
       maxActiveListings: 6
     };
     this.startGameLoop();

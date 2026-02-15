@@ -220,7 +220,7 @@ class GameDatabase {
       const heroCatalog = Object.values(HEROES).slice(0, 3);
       for (let index = 0; index < heroCatalog.length; index += 1) {
         const hero = heroCatalog[index];
-        await this.createHeroMarketListing(hero.id, 1 + index, 1200 + (index * 600), now + ((index + 1) * 24 * 60 * 60 * 1000));
+        await this.createHeroMarketListing(hero.id, 1 + index, 1000000 * (index + 1), now + (24 * 60 * 60 * 1000));
       }
     }
 
@@ -407,7 +407,15 @@ class GameDatabase {
         await client.query('DELETE FROM hero_market_bids WHERE id = $1', [highestBid.id]);
       }
 
-      await client.query('INSERT INTO hero_market_bids (listing_id, player_id, bid_amount, bid_at) VALUES ($1, $2, $3, $4)', [listingId, playerId, bidAmount, Date.now()]);
+      const bidAt = Date.now();
+      await client.query('INSERT INTO hero_market_bids (listing_id, player_id, bid_amount, bid_at) VALUES ($1, $2, $3, $4)', [listingId, playerId, bidAmount, bidAt]);
+
+      const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+      const timeRemaining = listing.expires_at - bidAt;
+      if (timeRemaining < THIRTY_MINUTES_MS) {
+        await client.query('UPDATE hero_market_listings SET expires_at = $1 WHERE id = $2', [bidAt + THIRTY_MINUTES_MS, listingId]);
+      }
+
       return { success: true };
     });
   }
