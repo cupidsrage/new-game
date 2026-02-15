@@ -45,6 +45,26 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
       socket.emit('queueUpdate', { trainingQueue: await db.getTrainingQueue(playerId) });
     });
 
+    socket.on('disbandUnits', async (data) => {
+      if (!playerId) return;
+      const result = await gameEngine.disbandUnits(playerId, data.unitType, data.amount);
+      socket.emit('disbandUnitsResult', result);
+      if (!result.success) return;
+      const player = await db.getPlayer(playerId);
+      socket.emit('unitsUpdate', player.units);
+      socket.emit('resourceUpdate', { population: player.population, gold: player.gold, mana: player.mana });
+    });
+
+    socket.on('dismissHero', async (data) => {
+      if (!playerId) return;
+      const result = await gameEngine.dismissHero(playerId, data.heroId);
+      socket.emit('dismissHeroResult', result);
+      if (!result.success) return;
+      const player = await db.getPlayer(playerId);
+      socket.emit('heroInventoryUpdate', player.heroes || []);
+      socket.emit('resourceUpdate', { gold: player.gold, mana: player.mana });
+    });
+
     socket.on('buildStructure', async (data) => {
       if (!playerId) return;
       const result = await gameEngine.buildStructure(playerId, data.buildingType, data.amount);

@@ -309,16 +309,20 @@ function renderBuildings() {
             ${building.goldPerSecond ? `<p>+${building.goldPerSecond}/s gold</p>` : ''}
             ${building.manaPerSecond ? `<p>+${building.manaPerSecond}/s mana</p>` : ''}
             ${building.populationPerSecond ? `<p>+${building.populationPerSecond}/s population</p>` : ''}
-            <button onclick="buildStructure('${building.id}', 1)">Build 1</button>
-            <button onclick="buildStructure('${building.id}', 5)">Build 5</button>
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="number" id="build_${building.id}" value="1" min="1" style="width: 80px; padding: 0.5rem;">
+                <button onclick="buildStructure('${building.id}')">Build</button>
+            </div>
         `;
         container.appendChild(card);
     }
 }
 
-function buildStructure(buildingType, amount) {
+function buildStructure(buildingType) {
+    const amount = Number.parseInt(document.getElementById(`build_${buildingType}`)?.value, 10);
+
     socket.emit('buildStructure', { buildingType, amount });
-    
+
     socket.once('buildStructureResult', (result) => {
         if (result.success) {
             showNotification(`Building ${amount} ${buildingType}. Completes in ${result.estimatedTime}s`, 'success');
@@ -385,7 +389,8 @@ function renderUnitsStats() {
             <h4>${unit.name}</h4>
             <p>Attack: ${unit.attack} | Defense: ${unit.defense}</p>
             <p><strong>Owned:</strong> ${owned}</p>
-            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s each</p>
+            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s each${unit.upkeepManaPerSecond ? `, ${unit.upkeepManaPerSecond.toFixed(2)} mana/s each` : ''}</p>
+            ${owned > 0 ? `<div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;"><input type="number" id="disband_${unit.id}" value="1" min="1" max="${owned}" style="width: 70px; padding: 0.4rem;"><button onclick="disbandUnits('${unit.id}')">Disband</button></div>` : ''}
         `;
         container.appendChild(card);
     }
@@ -416,7 +421,7 @@ function renderTrainUnits() {
             <p><strong>Cost:</strong> ${unit.goldCost || 0} gold${unit.manaCost ? `, ${unit.manaCost} mana` : ''}</p>
             <p><strong>Population:</strong> ${unit.populationCost}</p>
             <p><strong>Attack:</strong> ${unit.attack} | <strong>Defense:</strong> ${unit.defense}</p>
-            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s</p>
+            <p><strong>Upkeep:</strong> ${(unit.upkeepGoldPerSecond || 0).toFixed(2)} gold/s${unit.upkeepManaPerSecond ? `, ${unit.upkeepManaPerSecond.toFixed(2)} mana/s` : ''}</p>
             <p><strong>Training Time:</strong> ${unit.trainingTime}s</p>
             <div style="display: flex; gap: 0.5rem;">
                 <input type="number" id="train_${unit.id}" value="10" min="1" style="width: 60px; padding: 0.5rem;">
@@ -435,6 +440,19 @@ function trainUnits(unitType) {
     socket.once('trainUnitsResult', (result) => {
         if (result.success) {
             showNotification(`Training ${amount} ${unitType}. Completes in ${result.estimatedTime}s`, 'success');
+        } else {
+            showNotification(result.error, 'danger');
+        }
+    });
+}
+
+function disbandUnits(unitType) {
+    const amount = Number.parseInt(document.getElementById(`disband_${unitType}`)?.value, 10);
+    socket.emit('disbandUnits', { unitType, amount });
+
+    socket.once('disbandUnitsResult', (result) => {
+        if (result.success) {
+            showNotification(`Disbanded ${amount} ${unitType}.`, 'success');
         } else {
             showNotification(result.error, 'danger');
         }
@@ -628,6 +646,7 @@ function renderHeroes() {
             <p><strong>Upkeep:</strong> ${Math.floor(upkeep)} gold/s</p>
             <p><strong>Unlocked Abilities:</strong></p>
             ${unlockedAbilities.map((ability) => `<div class="ability">• ${ability.name}</div>`).join('') || '<div class="ability">None</div>'}
+            <button style="margin-top:0.75rem;" onclick="dismissHero(${ownedHero.id})">Dismiss Hero</button>
         `;
         yourContainer.appendChild(card);
     });
@@ -690,6 +709,7 @@ function renderBlackMarket() {
             <p><strong>Stats:</strong> ATK ${Math.floor(ownedHero.attack)} | DEF ${Math.floor(ownedHero.defense)} | HP ${Math.floor(ownedHero.max_health)}</p>
             <p><strong>Unlocked Abilities:</strong></p>
             ${unlockedAbilities.map((ability) => `<div class="ability">• ${ability.name}</div>`).join('') || '<div class="ability">None</div>'}
+            <button style="margin-top:0.75rem;" onclick="dismissHero(${ownedHero.id})">Dismiss Hero</button>
         `;
         inventoryContainer.appendChild(card);
     });
@@ -711,6 +731,17 @@ function placeHeroBid(listingId) {
             showNotification('Bid placed successfully!', 'success');
         } else {
             showNotification(result.error || 'Bid failed', 'danger');
+        }
+    });
+}
+
+function dismissHero(heroId) {
+    socket.emit('dismissHero', { heroId });
+    socket.once('dismissHeroResult', (result) => {
+        if (result.success) {
+            showNotification('Hero dismissed.', 'success');
+        } else {
+            showNotification(result.error, 'danger');
         }
     });
 }
