@@ -916,7 +916,924 @@ const HEROES = {
         effect: 'Deploy layered warding that grants +50% building resilience for 1 hour'
       }
     ]
+  },
+  DRUID: {
+    id: 'druid',
+    name: 'Elder Druid Thornweaver',
+    class: 'Druid',
+    goldCost: 1300000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Guardian of wild lands who bends natural cycles to strengthen kingdoms',
+    baseStats: {
+      attack: 90,
+      defense: 120,
+      health: 900,
+      mana: 1100
+    },
+    abilities: [
+      {
+        id: 'wild_regrowth',
+        name: 'Wild Regrowth',
+        cooldown: 1500,
+        unlockLevel: 1,
+        effect: 'Restore 20% of damaged units and recover 3% destroyed land over 20 minutes'
+      },
+      {
+        id: 'thornward_rampart',
+        name: 'Thornward Rampart',
+        cooldown: 2400,
+        unlockLevel: 3,
+        effect: 'Increase kingdom defense and building resilience by 30% for 1 hour'
+      },
+      {
+        id: 'primal_harvest',
+        name: 'Primal Harvest',
+        cooldown: 3300,
+        unlockLevel: 5,
+        effect: 'Boost food, gold, and mana generation by 70% for 35 minutes'
+      }
+    ]
+  },
+  WARLOCK: {
+    id: 'warlock',
+    name: 'Hexlord Varynth',
+    class: 'Warlock',
+    goldCost: 1500000,
+    upkeepGoldPerSecond: 2.5,
+    description: 'Dark ritualist specializing in curses, attrition, and soul-fueled warfare',
+    baseStats: {
+      attack: 155,
+      defense: 55,
+      health: 680,
+      mana: 1800
+    },
+    abilities: [
+      {
+        id: 'covenant_of_pain',
+        name: 'Covenant of Pain',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Afflict enemy army with a curse that deals 12% attrition over 30 minutes'
+      },
+      {
+        id: 'soul_siphon',
+        name: 'Soul Siphon',
+        cooldown: 2300,
+        unlockLevel: 3,
+        effect: 'Drain enemy mana reserves and convert 40% of it into your own'
+      },
+      {
+        id: 'cataclysm_rite',
+        name: 'Cataclysm Rite',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Unleash ritual devastation dealing 10% unit losses and 10% production disruption'
+      }
+    ]
+  },
+  BERSERKER: {
+    id: 'berserker',
+    name: 'Bloodthane Korga',
+    class: 'Berserker',
+    goldCost: 1250000,
+    upkeepGoldPerSecond: 2.35,
+    description: 'Frontline monster who trades defense for overwhelming burst offense',
+    baseStats: {
+      attack: 175,
+      defense: 45,
+      health: 950
+    },
+    abilities: [
+      {
+        id: 'rage_banner',
+        name: 'Rage Banner',
+        cooldown: 1400,
+        unlockLevel: 1,
+        effect: 'Increase all melee unit attack by 45% for 30 minutes'
+      },
+      {
+        id: 'battle_frenzy',
+        name: 'Battle Frenzy',
+        cooldown: 2100,
+        unlockLevel: 3,
+        effect: 'Empower your next attack with +60% offense and +20% casualty intake'
+      },
+      {
+        id: 'last_stand',
+        name: 'Last Stand',
+        cooldown: 3000,
+        unlockLevel: 5,
+        effect: 'When attacked, counterstrike to destroy up to 9% of enemy assault forces'
+      }
+    ]
+  },
+  BARD: {
+    id: 'bard',
+    name: 'Maestro Elowen Starvoice',
+    class: 'Bard',
+    goldCost: 1100000,
+    upkeepGoldPerSecond: 2.1,
+    description: 'Battle musician who amplifies economy, morale, and tactical adaptability',
+    baseStats: {
+      attack: 85,
+      defense: 90,
+      health: 780,
+      mana: 1000
+    },
+    abilities: [
+      {
+        id: 'anthem_of_valor',
+        name: 'Anthem of Valor',
+        cooldown: 1500,
+        unlockLevel: 1,
+        effect: 'Increase all unit attack and defense by 20% for 45 minutes'
+      },
+      {
+        id: 'merchant_refrain',
+        name: 'Merchant Refrain',
+        cooldown: 2100,
+        unlockLevel: 3,
+        effect: 'Raise gold income by 80% and reduce market fees for 30 minutes'
+      },
+      {
+        id: 'crescendo_of_fate',
+        name: 'Crescendo of Fate',
+        cooldown: 3300,
+        unlockLevel: 5,
+        effect: 'Refresh one random hero ability cooldown and grant +15% action speed for 20 minutes'
+      }
+    ]
+  },
+  MONK: {
+    id: 'monk',
+    name: 'Grandmaster Qin Solari',
+    class: 'Monk',
+    goldCost: 1350000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Disciplined mystic who blends resilience, precision strikes, and spiritual focus',
+    baseStats: {
+      attack: 125,
+      defense: 110,
+      health: 860,
+      mana: 900
+    },
+    abilities: [
+      {
+        id: 'iron_mind',
+        name: 'Iron Mind',
+        cooldown: 1600,
+        unlockLevel: 1,
+        effect: 'Reduce enemy spell effectiveness against your kingdom by 35% for 1 hour'
+      },
+      {
+        id: 'chi_burst',
+        name: 'Chi Burst',
+        cooldown: 2200,
+        unlockLevel: 3,
+        effect: 'Deliver focused impact that destroys 7% of enemy elite units'
+      },
+      {
+        id: 'serenity_cycle',
+        name: 'Serenity Cycle',
+        cooldown: 3200,
+        unlockLevel: 5,
+        effect: 'Increase health regeneration and mana regeneration by 200% for 30 minutes'
+      }
+    ]
+  },
+  ASSASSIN: {
+    id: 'assassin',
+    name: 'Vex the Silent Fang',
+    class: 'Assassin',
+    goldCost: 1450000,
+    upkeepGoldPerSecond: 2.45,
+    description: 'Deadly infiltrator focused on precision kills and sabotage',
+    baseStats: {
+      attack: 165,
+      defense: 55,
+      health: 690
+    },
+    abilities: [
+      {
+        id: 'shadowstep_strike',
+        name: 'Shadowstep Strike',
+        cooldown: 1600,
+        unlockLevel: 1,
+        effect: 'Eliminate 4% of enemy elite units before battle begins'
+      },
+      {
+        id: 'poisoned_supply',
+        name: 'Poisoned Supply',
+        cooldown: 2300,
+        unlockLevel: 3,
+        effect: 'Reduce enemy food and mana production by 35% for 30 minutes'
+      },
+      {
+        id: 'kingmaker_cut',
+        name: 'Kingmaker Cut',
+        cooldown: 3400,
+        unlockLevel: 5,
+        effect: 'Your next attack ignores 25% enemy defensive bonuses'
+      }
+    ]
+  },
+  SHAMAN: {
+    id: 'shaman',
+    name: 'Stormspeaker Naru',
+    class: 'Shaman',
+    goldCost: 1325000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Totem mystic who controls weather and empowers tribal armies',
+    baseStats: {
+      attack: 115,
+      defense: 105,
+      health: 870,
+      mana: 1150
+    },
+    abilities: [
+      {
+        id: 'totem_of_fury',
+        name: 'Totem of Fury',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Increase infantry and beast attack by 35% for 40 minutes'
+      },
+      {
+        id: 'raincaller_ritual',
+        name: 'Raincaller Ritual',
+        cooldown: 2400,
+        unlockLevel: 3,
+        effect: 'Boost farm output and population growth by 70% for 30 minutes'
+      },
+      {
+        id: 'tempest_binding',
+        name: 'Tempest Binding',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Trap enemy forces in storms, reducing outgoing damage by 30% for 25 minutes'
+      }
+    ]
+  },
+  KNIGHT: {
+    id: 'knight',
+    name: 'Sir Aldric Ironcrest',
+    class: 'Knight',
+    goldCost: 1420000,
+    upkeepGoldPerSecond: 2.4,
+    description: 'Disciplined commander of heavy cavalry and fortress tactics',
+    baseStats: {
+      attack: 128,
+      defense: 138,
+      health: 990
+    },
+    abilities: [
+      {
+        id: 'cavalry_charge',
+        name: 'Cavalry Charge',
+        cooldown: 1800,
+        unlockLevel: 1,
+        effect: 'Your next assault gains +45% cavalry damage'
+      },
+      {
+        id: 'bulwark_orders',
+        name: 'Bulwark Orders',
+        cooldown: 2500,
+        unlockLevel: 3,
+        effect: 'Increase all kingdom defense by 35% for 1 hour'
+      },
+      {
+        id: 'banner_of_honor',
+        name: 'Banner of Honor',
+        cooldown: 3500,
+        unlockLevel: 5,
+        effect: 'Grant all units +25% attack and +25% defense for 45 minutes'
+      }
+    ]
+  },
+  ALCHEMIST: {
+    id: 'alchemist',
+    name: 'Professor Embercoil',
+    class: 'Alchemist',
+    goldCost: 1375000,
+    upkeepGoldPerSecond: 2.35,
+    description: 'Resource manipulator who converts surplus into tactical advantages',
+    baseStats: {
+      attack: 98,
+      defense: 92,
+      health: 800,
+      mana: 1300
+    },
+    abilities: [
+      {
+        id: 'volatile_concoction',
+        name: 'Volatile Concoction',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Deal explosive damage destroying 9% enemy siege units'
+      },
+      {
+        id: 'gold_distillation',
+        name: 'Gold Distillation',
+        cooldown: 2200,
+        unlockLevel: 3,
+        effect: 'Convert 30% mana into gold at an improved 1:3 ratio'
+      },
+      {
+        id: 'elixir_of_ascendancy',
+        name: 'Elixir of Ascendancy',
+        cooldown: 3400,
+        unlockLevel: 5,
+        effect: 'Increase all production by 55% and hero health by 25% for 40 minutes'
+      }
+    ]
+  },
+  TEMPLAR: {
+    id: 'templar',
+    name: 'Inquisitor Solbrand',
+    class: 'Templar',
+    goldCost: 1480000,
+    upkeepGoldPerSecond: 2.45,
+    description: 'Zealous anti-magic crusader excelling against spell-heavy kingdoms',
+    baseStats: {
+      attack: 138,
+      defense: 125,
+      health: 930,
+      mana: 700
+    },
+    abilities: [
+      {
+        id: 'purge_hex',
+        name: 'Purge Hex',
+        cooldown: 1750,
+        unlockLevel: 1,
+        effect: 'Remove one active hostile debuff from your kingdom and gain brief immunity'
+      },
+      {
+        id: 'sanctified_aura',
+        name: 'Sanctified Aura',
+        cooldown: 2600,
+        unlockLevel: 3,
+        effect: 'Reduce enemy spell damage by 40% and boost holy unit defense by 30% for 35 minutes'
+      },
+      {
+        id: 'inquisition_march',
+        name: 'Inquisition March',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Next attack dispels target stealth effects and deals +30% damage'
+      }
+    ]
+  },
+  BEASTMASTER: {
+    id: 'beastmaster',
+    name: 'Rokhan Wildmane',
+    class: 'Beastmaster',
+    goldCost: 1360000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Commander of warbeasts and rapid-strike hunting packs',
+    baseStats: {
+      attack: 145,
+      defense: 88,
+      health: 920
+    },
+    abilities: [
+      {
+        id: 'pack_howl',
+        name: 'Pack Howl',
+        cooldown: 1650,
+        unlockLevel: 1,
+        effect: 'Increase beast and cavalry attack by 40% for 35 minutes'
+      },
+      {
+        id: 'alpha_pounce',
+        name: 'Alpha Pounce',
+        cooldown: 2350,
+        unlockLevel: 3,
+        effect: 'Instantly remove 7% enemy archer and mage units'
+      },
+      {
+        id: 'primal_dominion',
+        name: 'Primal Dominion',
+        cooldown: 3450,
+        unlockLevel: 5,
+        effect: 'Reduce incoming retaliation by 30% on your next two attacks'
+      }
+    ]
+  },
+  CHRONOMANCER: {
+    id: 'chronomancer',
+    name: 'Aeon Sage Miravel',
+    class: 'Chronomancer',
+    goldCost: 1700000,
+    upkeepGoldPerSecond: 2.6,
+    description: 'Timeweaver who accelerates development and disrupts enemy momentum',
+    baseStats: {
+      attack: 110,
+      defense: 100,
+      health: 760,
+      mana: 1900
+    },
+    abilities: [
+      {
+        id: 'temporal_haste',
+        name: 'Temporal Haste',
+        cooldown: 1900,
+        unlockLevel: 1,
+        effect: 'Increase training and construction speed by 80% for 25 minutes'
+      },
+      {
+        id: 'stasis_field',
+        name: 'Stasis Field',
+        cooldown: 2800,
+        unlockLevel: 3,
+        effect: 'Slow enemy attack preparation and spell recharge by 35% for 30 minutes'
+      },
+      {
+        id: 'echo_of_victory',
+        name: 'Echo of Victory',
+        cooldown: 3900,
+        unlockLevel: 5,
+        effect: 'Repeat 30% of your last successful offensive losses as free reinforcements'
+      }
+    ]
+  },
+  WARDEN: {
+    id: 'warden',
+    name: 'Warden Thalos Stonebark',
+    class: 'Warden',
+    goldCost: 1400000,
+    upkeepGoldPerSecond: 2.4,
+    description: 'Unbreakable protector specializing in land control and counterattacks',
+    baseStats: {
+      attack: 112,
+      defense: 150,
+      health: 1080
+    },
+    abilities: [
+      {
+        id: 'rooted_defiance',
+        name: 'Rooted Defiance',
+        cooldown: 1800,
+        unlockLevel: 1,
+        effect: 'Increase defense by 45% while reducing enemy land gains by 25% for 40 minutes'
+      },
+      {
+        id: 'granite_counter',
+        name: 'Granite Counter',
+        cooldown: 2500,
+        unlockLevel: 3,
+        effect: 'Reflect 15% of incoming unit losses back to attacker for 30 minutes'
+      },
+      {
+        id: 'citadel_heart',
+        name: 'Citadel Heart',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Fortify all buildings, granting +60% resilience for 1 hour'
+      }
+    ]
+  },
+  NECROKNIGHT: {
+    id: 'necroknight',
+    name: 'Dread Marshal Vorak',
+    class: 'Necroknight',
+    goldCost: 1620000,
+    upkeepGoldPerSecond: 2.55,
+    description: 'Undead cavalry lord combining heavy armor with dark resurrection rites',
+    baseStats: {
+      attack: 152,
+      defense: 118,
+      health: 980,
+      mana: 900
+    },
+    abilities: [
+      {
+        id: 'grave_charge',
+        name: 'Grave Charge',
+        cooldown: 1850,
+        unlockLevel: 1,
+        effect: 'Your cavalry attacks with +35% power and revives 10% losses as undead'
+      },
+      {
+        id: 'bone_shield',
+        name: 'Bone Shield',
+        cooldown: 2550,
+        unlockLevel: 3,
+        effect: 'Reduce incoming damage by 30% and enemy healing by 40% for 30 minutes'
+      },
+      {
+        id: 'march_of_ruin',
+        name: 'March of Ruin',
+        cooldown: 3700,
+        unlockLevel: 5,
+        effect: 'Summon a death march that inflicts 8% unit attrition and 8% population loss'
+      }
+    ]
+  },
+  SORCERER: {
+    id: 'sorcerer',
+    name: 'Celestian the Embermind',
+    class: 'Sorcerer',
+    goldCost: 1550000,
+    upkeepGoldPerSecond: 2.5,
+    description: 'Elemental caster with destructive burst spells and mana control',
+    baseStats: {
+      attack: 160,
+      defense: 70,
+      health: 700,
+      mana: 2100
+    },
+    abilities: [
+      {
+        id: 'nova_sphere',
+        name: 'Nova Sphere',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Blast enemy formations, destroying 10% mage and archer units'
+      },
+      {
+        id: 'mana_lattice',
+        name: 'Mana Lattice',
+        cooldown: 2400,
+        unlockLevel: 3,
+        effect: 'Increase your mana regeneration by 150% and cut spell costs by 20% for 30 minutes'
+      },
+      {
+        id: 'skyfire_deluge',
+        name: 'Skyfire Deluge',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Rain elemental fire causing 12% army losses and 6% building disruption'
+      }
+    ]
+  },
+  SENTINEL: {
+    id: 'sentinel',
+    name: 'Captain Rhea Everwatch',
+    class: 'Sentinel',
+    goldCost: 1380000,
+    upkeepGoldPerSecond: 2.35,
+    description: 'Defensive specialist with superior scouting and anti-ambush protocols',
+    baseStats: {
+      attack: 118,
+      defense: 132,
+      health: 940
+    },
+    abilities: [
+      {
+        id: 'vigilant_lines',
+        name: 'Vigilant Lines',
+        cooldown: 1650,
+        unlockLevel: 1,
+        effect: 'Boost defense by 30% and reveal incoming attacks 20% earlier for 45 minutes'
+      },
+      {
+        id: 'counterbattery',
+        name: 'Counterbattery',
+        cooldown: 2300,
+        unlockLevel: 3,
+        effect: 'Neutralize 10% of enemy siege engines during their next assault'
+      },
+      {
+        id: 'iron_perimeter',
+        name: 'Iron Perimeter',
+        cooldown: 3400,
+        unlockLevel: 5,
+        effect: 'Prevent sabotage and stealth effects against your kingdom for 40 minutes'
+      }
+    ]
+  },
+  SPELLBLADE: {
+    id: 'spellblade',
+    name: 'Kaelis Arcsteel',
+    class: 'Spellblade',
+    goldCost: 1460000,
+    upkeepGoldPerSecond: 2.45,
+    description: 'Hybrid duelist balancing martial pressure with arcane burst',
+    baseStats: {
+      attack: 148,
+      defense: 102,
+      health: 860,
+      mana: 1200
+    },
+    abilities: [
+      {
+        id: 'arc_slash',
+        name: 'Arc Slash',
+        cooldown: 1600,
+        unlockLevel: 1,
+        effect: 'Cut through enemy ranks, dealing 8% losses to frontline units'
+      },
+      {
+        id: 'runebound_guard',
+        name: 'Runebound Guard',
+        cooldown: 2350,
+        unlockLevel: 3,
+        effect: 'Grant +30% attack and +30% defense to elite units for 35 minutes'
+      },
+      {
+        id: 'ether_crescent',
+        name: 'Ether Crescent',
+        cooldown: 3500,
+        unlockLevel: 5,
+        effect: 'Empower your next two spells to deal 40% increased impact'
+      }
+    ]
+  },
+  ENGINEER: {
+    id: 'engineer',
+    name: 'Chief Engineer Brasswick',
+    class: 'Engineer',
+    goldCost: 1340000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Siege architect who optimizes infrastructure and mechanical warfare',
+    baseStats: {
+      attack: 104,
+      defense: 108,
+      health: 840
+    },
+    abilities: [
+      {
+        id: 'rapid_forge',
+        name: 'Rapid Forge',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Increase building speed by 90% and reduce land build costs for 25 minutes'
+      },
+      {
+        id: 'siege_calibration',
+        name: 'Siege Calibration',
+        cooldown: 2450,
+        unlockLevel: 3,
+        effect: 'Boost siege unit attack by 50% and accuracy by 20% for 30 minutes'
+      },
+      {
+        id: 'fortress_protocol',
+        name: 'Fortress Protocol',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Instantly repair 12% building damage and grant +35% resilience for 1 hour'
+      }
+    ]
+  },
+  ORACLE: {
+    id: 'oracle',
+    name: 'Oracle Nymera',
+    class: 'Oracle',
+    goldCost: 1520000,
+    upkeepGoldPerSecond: 2.5,
+    description: 'Seer of fate who predicts enemy actions and amplifies strategic control',
+    baseStats: {
+      attack: 102,
+      defense: 112,
+      health: 780,
+      mana: 1750
+    },
+    abilities: [
+      {
+        id: 'future_sight',
+        name: 'Future Sight',
+        cooldown: 1750,
+        unlockLevel: 1,
+        effect: 'Reveal complete target kingdom intel and active buffs for 20 minutes'
+      },
+      {
+        id: 'thread_of_destiny',
+        name: 'Thread of Destiny',
+        cooldown: 2500,
+        unlockLevel: 3,
+        effect: 'Increase your critical battle outcomes by 15% for 30 minutes'
+      },
+      {
+        id: 'fated_convergence',
+        name: 'Fated Convergence',
+        cooldown: 3700,
+        unlockLevel: 5,
+        effect: 'Reduce all your hero cooldowns by 30% and spell cooldowns by 20% for 25 minutes'
+      }
+    ]
+  },
+  REAVER: {
+    id: 'reaver',
+    name: 'Skarl Doomreaver',
+    class: 'Reaver',
+    goldCost: 1430000,
+    upkeepGoldPerSecond: 2.4,
+    description: 'Raider king focused on plunder, pressure, and sustained offensive tempo',
+    baseStats: {
+      attack: 158,
+      defense: 82,
+      health: 900
+    },
+    abilities: [
+      {
+        id: 'plunder_raid',
+        name: 'Plunder Raid',
+        cooldown: 1650,
+        unlockLevel: 1,
+        effect: 'Your next attack steals +20% extra gold and mana'
+      },
+      {
+        id: 'burning_wake',
+        name: 'Burning Wake',
+        cooldown: 2350,
+        unlockLevel: 3,
+        effect: 'Leave scorched lands reducing enemy production by 25% for 30 minutes'
+      },
+      {
+        id: 'black_sails',
+        name: 'Black Sails',
+        cooldown: 3500,
+        unlockLevel: 5,
+        effect: 'Enable two rapid assaults with 20% reduced prep time'
+      }
+    ]
+  },
+  ILLUSIONIST: {
+    id: 'illusionist',
+    name: 'Mirage Queen Selyth',
+    class: 'Illusionist',
+    goldCost: 1490000,
+    upkeepGoldPerSecond: 2.45,
+    description: 'Master deceiver who creates false intel and misdirects enemy attacks',
+    baseStats: {
+      attack: 108,
+      defense: 96,
+      health: 760,
+      mana: 1700
+    },
+    abilities: [
+      {
+        id: 'phantom_host',
+        name: 'Phantom Host',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Create illusory armies that reduce enemy hit efficiency by 20% for 30 minutes'
+      },
+      {
+        id: 'mirror_hex',
+        name: 'Mirror Hex',
+        cooldown: 2450,
+        unlockLevel: 3,
+        effect: 'Reflect one hostile spell back at the caster within 20 minutes'
+      },
+      {
+        id: 'grand_masquerade',
+        name: 'Grand Masquerade',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Hide true kingdom stats and fake strength values to all scouts for 1 hour'
+      }
+    ]
+  },
+  DRAGONKNIGHT: {
+    id: 'dragonknight',
+    name: 'Valdris Flamewarden',
+    class: 'Dragonknight',
+    goldCost: 1800000,
+    upkeepGoldPerSecond: 2.7,
+    description: 'Legendary champion wielding draconic power in war and defense',
+    baseStats: {
+      attack: 172,
+      defense: 142,
+      health: 1120,
+      mana: 1000
+    },
+    abilities: [
+      {
+        id: 'drake_breath',
+        name: 'Drake Breath',
+        cooldown: 1900,
+        unlockLevel: 1,
+        effect: 'Scorch enemy lines for 10% unit losses and morale shock'
+      },
+      {
+        id: 'scale_guard',
+        name: 'Scale Guard',
+        cooldown: 2700,
+        unlockLevel: 3,
+        effect: 'Grant kingdom-wide +40% damage resistance for 30 minutes'
+      },
+      {
+        id: 'winged_annihilation',
+        name: 'Winged Annihilation',
+        cooldown: 3900,
+        unlockLevel: 5,
+        effect: 'Launch an aerial strike that devastates 12% units and 8% buildings'
+      }
+    ]
+  },
+  SEER: {
+    id: 'seer',
+    name: 'Vaela Moonseer',
+    class: 'Seer',
+    goldCost: 1410000,
+    upkeepGoldPerSecond: 2.4,
+    description: 'Mystic support hero who amplifies enchantments and nullifies threats',
+    baseStats: {
+      attack: 96,
+      defense: 118,
+      health: 820,
+      mana: 1650
+    },
+    abilities: [
+      {
+        id: 'lunar_ward',
+        name: 'Lunar Ward',
+        cooldown: 1700,
+        unlockLevel: 1,
+        effect: 'Grant +35% resistance to hostile spells for 40 minutes'
+      },
+      {
+        id: 'omens_gift',
+        name: "Omen's Gift",
+        cooldown: 2400,
+        unlockLevel: 3,
+        effect: 'Increase all resource production and scouting accuracy by 30% for 35 minutes'
+      },
+      {
+        id: 'eclipse_prophecy',
+        name: 'Eclipse Prophecy',
+        cooldown: 3600,
+        unlockLevel: 5,
+        effect: 'Suppress enemy active buffs by 20% and enhance your buffs by 20% for 25 minutes'
+      }
+    ]
+  },
+  GLADIATOR: {
+    id: 'gladiator',
+    name: 'Arena King Draven',
+    class: 'Gladiator',
+    goldCost: 1330000,
+    upkeepGoldPerSecond: 2.3,
+    description: 'Duelist hero built for decisive battle swings and morale warfare',
+    baseStats: {
+      attack: 162,
+      defense: 78,
+      health: 940
+    },
+    abilities: [
+      {
+        id: 'crowd_fervor',
+        name: 'Crowd Fervor',
+        cooldown: 1550,
+        unlockLevel: 1,
+        effect: 'Increase frontline unit damage by 38% for 30 minutes'
+      },
+      {
+        id: 'duelists_mark',
+        name: "Duelist's Mark",
+        cooldown: 2250,
+        unlockLevel: 3,
+        effect: 'Target enemy hero suffers 25% reduced effectiveness for 25 minutes'
+      },
+      {
+        id: 'finishing_blow',
+        name: 'Finishing Blow',
+        cooldown: 3350,
+        unlockLevel: 5,
+        effect: 'Execute weakened enemy forces, destroying up to 11% remaining assault units'
+      }
+    ]
+  },
+  ELEMENTALIST: {
+    id: 'elementalist',
+    name: 'Lyra Stormglass',
+    class: 'Elementalist',
+    goldCost: 1580000,
+    upkeepGoldPerSecond: 2.55,
+    description: 'Element-channeler controlling fire, frost, and thunder across battlefields',
+    baseStats: {
+      attack: 166,
+      defense: 72,
+      health: 720,
+      mana: 2200
+    },
+    abilities: [
+      {
+        id: 'frostbind',
+        name: 'Frostbind',
+        cooldown: 1750,
+        unlockLevel: 1,
+        effect: 'Slow enemy offense and reduce attack speed by 30% for 25 minutes'
+      },
+      {
+        id: 'thunderwake',
+        name: 'Thunderwake',
+        cooldown: 2500,
+        unlockLevel: 3,
+        effect: 'Strike enemy army with lightning for 9% unit losses'
+      },
+      {
+        id: 'inferno_convergence',
+        name: 'Inferno Convergence',
+        cooldown: 3750,
+        unlockLevel: 5,
+        effect: 'Ignite target kingdom causing 14% force losses and 10% production disruption'
+      }
+    ]
   }
+
 };
 
 const ITEMS = {
