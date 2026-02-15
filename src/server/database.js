@@ -344,6 +344,10 @@ class GameDatabase {
     );
   }
 
+  async removePlayerHero(playerId, heroRecordId) {
+    await this.query('DELETE FROM player_heroes WHERE player_id = $1 AND id = $2', [playerId, heroRecordId]);
+  }
+
   async createHeroMarketListing(heroId, heroLevel, startingBid, expiresAt) {
     const { rows } = await this.query(
       `INSERT INTO hero_market_listings (hero_id, hero_level, starting_bid, listed_at, expires_at, status)

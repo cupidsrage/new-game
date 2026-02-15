@@ -37,14 +37,19 @@ class GameEngine {
 
   async tick() {
     // Update resources for all active players
-    for (const [playerId, playerData] of this.players) {
+    for (const [playerId] of this.players) {
       try {
-        const player = await this.db.getPlayer(playerId);
+        let player = await this.db.getPlayer(playerId);
         if (!player) continue;
 
-        // Calculate resource production
-        const production = this.calculateProduction(player);
-        
+        let production = this.calculateProduction(player);
+
+        if (player.gold + production.gold < 0) {
+          const upkeepResolution = await this.resolveNegativeGold(player, production);
+          player = upkeepResolution.player;
+          production = upkeepResolution.production;
+        }
+
         // Update resources
         player.gold = Math.max(0, player.gold + production.gold);
         player.mana = Math.max(0, player.mana + production.mana);
@@ -70,6 +75,91 @@ class GameEngine {
         console.error(`Error processing tick for player ${playerId}:`, error);
       }
     }
+  }
+
+
+  getUnitUpkeep(unitType, amount) {
+    const unit = UNIT_TYPES[(unitType || '').toUpperCase()];
+    if (!unit || !unit.upkeepGoldPerSecond || amount <= 0) return 0;
+    return unit.upkeepGoldPerSecond * amount;
+  }
+
+  async resolveNegativeGold(player, production) {
+    const playerId = player.id;
+    let currentPlayer = player;
+    let currentProduction = production;
+    const notifications = [];
+
+    const projectedGold = () => currentPlayer.gold + currentProduction.gold;
+
+    if (projectedGold() < 0 && (currentPlayer.heroes || []).length > 0) {
+      const heroesByUpkeep = [...currentPlayer.heroes].sort((a, b) => {
+        const upkeepA = 200 * Math.max(1, Number(a.level) || 1);
+        const upkeepB = 200 * Math.max(1, Number(b.level) || 1);
+        return upkeepB - upkeepA;
+      });
+
+      for (const hero of heroesByUpkeep) {
+        if (projectedGold() >= 0) break;
+
+        await this.db.removePlayerHero(playerId, hero.id);
+        const heroLevel = Math.max(1, Number(hero.level) || 1);
+        const heroUpkeep = 200 * heroLevel;
+        currentProduction.gold += heroUpkeep;
+
+        const heroName = HEROES[(hero.hero_id || '').toUpperCase()]?.name || hero.hero_id || 'A hero';
+        notifications.push(`${heroName} left your kingdom because you could not pay upkeep.`);
+      }
+
+      if (notifications.length > 0) {
+        currentPlayer = await this.db.getPlayer(playerId);
+      }
+    }
+
+    if (projectedGold() < 0) {
+      const unitsByUpkeep = Object.entries(currentPlayer.units || {})
+        .map(([unitType, amount]) => ({
+          unitType,
+          amount,
+          upkeep: this.getUnitUpkeep(unitType, amount)
+        }))
+        .filter((entry) => entry.amount > 0 && entry.upkeep > 0)
+        .sort((a, b) => b.upkeep - a.upkeep);
+
+      for (const unitEntry of unitsByUpkeep) {
+        if (projectedGold() >= 0) break;
+
+        const upkeepPerUnit = this.getUnitUpkeep(unitEntry.unitType, 1);
+        let amount = unitEntry.amount;
+        while (amount > 0 && projectedGold() < 0) {
+          amount -= 1;
+          await this.db.updateUnits(playerId, unitEntry.unitType, amount);
+          currentProduction.gold += upkeepPerUnit;
+        }
+
+        if (amount < unitEntry.amount) {
+          const departed = unitEntry.amount - amount;
+          notifications.push(`${departed} ${unitEntry.unitType} deserted due to unpaid upkeep.`);
+        }
+      }
+
+      if (notifications.length > 0) {
+        currentPlayer = await this.db.getPlayer(playerId);
+      }
+    }
+
+    for (const message of notifications) {
+      await this.db.addMessage(playerId, message, 'danger');
+    }
+
+    if (notifications.length > 0 && this.io) {
+      this.io.to(playerId).emit('heroInventoryUpdate', currentPlayer.heroes || []);
+    }
+
+    return {
+      player: currentPlayer,
+      production: currentProduction
+    };
   }
 
   calculateProduction(player) {
