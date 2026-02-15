@@ -518,10 +518,11 @@ class GameEngine {
 
   calculateSpellResearchTime(player, spell) {
     const baseResearchDays = Math.max(1, Number(spell.researchDays) || 1);
+    const baseResearchSeconds = baseResearchDays * 24 * 60 * 60;
     const universityCount = player.buildings.university || 0;
-    const universityBonus = BUILDING_TYPES.UNIVERSITY?.researchSpeedBonus || 0;
-    const speedMultiplier = Math.max(0.1, 1 + (universityCount * universityBonus));
-    return (baseResearchDays * 24 * 60 * 60) / speedMultiplier;
+    const reductionMinutesPerUniversity = BUILDING_TYPES.UNIVERSITY?.researchTimeReductionMinutes || 0;
+    const reductionSeconds = universityCount * reductionMinutesPerUniversity * 60;
+    return Math.max(60, baseResearchSeconds - reductionSeconds);
   }
 
   async startSpellResearch(playerId, spellId) {
