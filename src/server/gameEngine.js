@@ -103,9 +103,8 @@ class GameEngine {
     }
 
     for (const hero of player.heroes || []) {
-      const heroDefinition = HEROES[(hero.hero_id || '').toUpperCase()];
-      if (!heroDefinition || !heroDefinition.upkeepGoldPerSecond) continue;
-      totalUpkeepGoldPerSecond += heroDefinition.upkeepGoldPerSecond;
+      const heroLevel = Math.max(1, Number(hero.level) || 1);
+      totalUpkeepGoldPerSecond += 200 * heroLevel;
     }
 
     // Apply active effects/buffs
