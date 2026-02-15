@@ -591,6 +591,12 @@ class GameEngine {
     if (!spell) return { success: false, error: 'Invalid spell' };
 
     const existingResearch = await this.db.getSpellResearch(playerId);
+    const activeResearch = existingResearch.find((item) => !item.completed && item.completes_at > Date.now());
+    if (activeResearch && activeResearch.spell_id !== spell.id) {
+      const remainingSeconds = Math.ceil((activeResearch.completes_at - Date.now()) / 1000);
+      return { success: false, error: `You can only research one spell at a time (${remainingSeconds}s remaining)` };
+    }
+
     const existing = existingResearch.find((item) => item.spell_id === spell.id);
     if (existing?.completed) {
       return { success: false, error: 'Spell already researched' };
