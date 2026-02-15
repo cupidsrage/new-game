@@ -17,13 +17,14 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
           id: player.id, username: player.username, gold: player.gold, mana: player.mana,
           population: player.population, land: player.land, totalLand: player.total_land, level: player.level,
           experience: player.experience, units: player.units, buildings: player.buildings,
-          heroes: player.heroes, items: player.items, activeEffects: player.activeEffects
+          heroes: player.heroes, items: player.items, activeEffects: player.activeEffects, spellResearch: player.spellResearch
         } });
 
         socket.emit('initialData', {
           trainingQueue: await db.getTrainingQueue(playerId),
           buildingQueue: await db.getBuildingQueue(playerId),
           cooldowns: await db.getSpellCooldowns(playerId),
+          spellResearch: await db.getSpellResearch(playerId),
           messages: await db.getMessages(playerId),
           productionRates: await gameEngine.getProductionRates(playerId),
           heroMarketListings: await gameEngine.getHeroMarketListings()
@@ -63,6 +64,14 @@ function registerSocketHandlers(io, { db, gameEngine, sessions }) {
       socket.emit('resourceUpdate', { mana: player.mana });
       socket.emit('unitsUpdate', player.units);
       socket.emit('cooldownUpdate', await db.getSpellCooldowns(playerId));
+    });
+
+    socket.on('researchSpell', async (data) => {
+      if (!playerId) return;
+      const result = await gameEngine.startSpellResearch(playerId, data.spellId);
+      socket.emit('researchSpellResult', result);
+      if (!result.success) return;
+      socket.emit('spellResearchUpdate', await db.getSpellResearch(playerId));
     });
 
     socket.on('attack', async (data) => {

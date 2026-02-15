@@ -129,6 +129,16 @@ class GameDatabase {
         UNIQUE(player_id, spell_id)
       );
 
+      CREATE TABLE IF NOT EXISTS spell_research (
+        id BIGSERIAL PRIMARY KEY,
+        player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+        spell_id TEXT NOT NULL,
+        started_at BIGINT NOT NULL,
+        completes_at BIGINT NOT NULL,
+        completed BOOLEAN NOT NULL DEFAULT FALSE,
+        UNIQUE(player_id, spell_id)
+      );
+
       CREATE TABLE IF NOT EXISTS training_queue (
         id BIGSERIAL PRIMARY KEY,
         player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
@@ -275,6 +285,7 @@ class GameDatabase {
     player.heroes = (await this.query('SELECT * FROM player_heroes WHERE player_id = $1', [playerId])).rows;
     player.items = (await this.query('SELECT * FROM player_items WHERE player_id = $1', [playerId])).rows;
     player.activeEffects = (await this.query('SELECT * FROM active_effects WHERE player_id = $1 AND expires_at > $2', [playerId, Date.now()])).rows;
+    player.spellResearch = (await this.getSpellResearch(playerId));
 
     return player;
   }
@@ -465,6 +476,25 @@ class GameDatabase {
 
   async getSpellCooldowns(playerId) {
     return (await this.query('SELECT spell_id, ready_at FROM spell_cooldowns WHERE player_id = $1', [playerId])).rows;
+  }
+
+  async startSpellResearch(playerId, spellId, completesAt) {
+    const now = Date.now();
+    await this.query(
+      `INSERT INTO spell_research (player_id, spell_id, started_at, completes_at, completed)
+       VALUES ($1, $2, $3, $4, FALSE)
+       ON CONFLICT (player_id, spell_id)
+       DO UPDATE SET started_at = EXCLUDED.started_at, completes_at = EXCLUDED.completes_at, completed = FALSE`,
+      [playerId, spellId, now, completesAt]
+    );
+  }
+
+  async getSpellResearch(playerId) {
+    return (await this.query('SELECT spell_id, started_at, completes_at, completed FROM spell_research WHERE player_id = $1', [playerId])).rows;
+  }
+
+  async completeSpellResearch(id) {
+    return (await this.query('UPDATE spell_research SET completed = TRUE WHERE id = $1 RETURNING *', [id])).rows[0] || null;
   }
 
   async addEffect(playerId, effectType, multiplier, expiresAt, source) {
