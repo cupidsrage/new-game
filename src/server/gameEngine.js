@@ -78,10 +78,16 @@ class GameEngine {
   }
 
 
-  getUnitUpkeep(unitType, amount) {
+  getUnitGoldUpkeep(unitType, amount) {
     const unit = UNIT_TYPES[(unitType || '').toUpperCase()];
     if (!unit || !unit.upkeepGoldPerSecond || amount <= 0) return 0;
     return unit.upkeepGoldPerSecond * amount;
+  }
+
+  getUnitManaUpkeep(unitType, amount) {
+    const unit = UNIT_TYPES[(unitType || '').toUpperCase()];
+    if (!unit || !unit.upkeepManaPerSecond || amount <= 0) return 0;
+    return unit.upkeepManaPerSecond * amount;
   }
 
   async resolveNegativeGold(player, production) {
@@ -121,7 +127,7 @@ class GameEngine {
         .map(([unitType, amount]) => ({
           unitType,
           amount,
-          upkeep: this.getUnitUpkeep(unitType, amount)
+          upkeep: this.getUnitGoldUpkeep(unitType, amount)
         }))
         .filter((entry) => entry.amount > 0 && entry.upkeep > 0)
         .sort((a, b) => b.upkeep - a.upkeep);
@@ -129,7 +135,7 @@ class GameEngine {
       for (const unitEntry of unitsByUpkeep) {
         if (projectedGold() >= 0) break;
 
-        const upkeepPerUnit = this.getUnitUpkeep(unitEntry.unitType, 1);
+        const upkeepPerUnit = this.getUnitGoldUpkeep(unitEntry.unitType, 1);
         let amount = unitEntry.amount;
         while (amount > 0 && projectedGold() < 0) {
           amount -= 1;
@@ -185,11 +191,11 @@ class GameEngine {
 
     // Apply troop and hero upkeep costs
     let totalUpkeepGoldPerSecond = 0;
+    let totalUpkeepManaPerSecond = 0;
 
     for (const [unitType, amount] of Object.entries(player.units || {})) {
-      const unit = UNIT_TYPES[unitType.toUpperCase()];
-      if (!unit || !unit.upkeepGoldPerSecond) continue;
-      totalUpkeepGoldPerSecond += unit.upkeepGoldPerSecond * amount;
+      totalUpkeepGoldPerSecond += this.getUnitGoldUpkeep(unitType, amount);
+      totalUpkeepManaPerSecond += this.getUnitManaUpkeep(unitType, amount);
     }
 
     for (const hero of player.heroes || []) {
@@ -212,10 +218,11 @@ class GameEngine {
     }
 
     const goldPerSecond = grossGoldPerSecond - totalUpkeepGoldPerSecond;
+    const netManaPerSecond = manaPerSecond - totalUpkeepManaPerSecond;
 
     return {
       gold: goldPerSecond,
-      mana: manaPerSecond,
+      mana: netManaPerSecond,
       population: populationPerSecond
     };
   }
@@ -230,47 +237,43 @@ class GameEngine {
   async processQueues() {
     const now = Date.now();
 
-    // Process training queues
+    // Process one training stack at a time
     for (const [playerId] of this.players) {
       const trainingQueue = await this.db.getTrainingQueue(playerId);
-      
-      for (const item of trainingQueue) {
-        if (item.completes_at <= now) {
-          // Training complete
-          const player = await this.db.getPlayer(playerId);
-          const currentAmount = player.units[item.unit_type] || 0;
-          await this.db.updateUnits(playerId, item.unit_type, currentAmount + item.amount);
-          await this.db.completeTraining(item.id);
+      const trainingItem = trainingQueue[0];
 
-          // Notify player
-          this.io.to(playerId).emit('trainingComplete', {
-            unitType: item.unit_type,
-            amount: item.amount
-          });
+      if (trainingItem && trainingItem.completes_at <= now) {
+        const player = await this.db.getPlayer(playerId);
+        const currentAmount = player.units[trainingItem.unit_type] || 0;
+        await this.db.updateUnits(playerId, trainingItem.unit_type, currentAmount + trainingItem.amount);
+        await this.db.completeTraining(trainingItem.id);
 
-          await this.db.addMessage(playerId, `Training complete: ${item.amount} ${item.unit_type}`, 'success');
-        }
+        this.io.to(playerId).emit('trainingComplete', {
+          unitType: trainingItem.unit_type,
+          amount: trainingItem.amount
+        });
+
+        await this.db.addMessage(playerId, `Training complete: ${trainingItem.amount} ${trainingItem.unit_type}`, 'success');
+        this.io.to(playerId).emit('queueUpdate', { trainingQueue: await this.db.getTrainingQueue(playerId) });
       }
 
-      // Process building queues
+      // Process one building stack at a time
       const buildingQueue = await this.db.getBuildingQueue(playerId);
-      
-      for (const item of buildingQueue) {
-        if (item.completes_at <= now) {
-          // Building complete
-          const player = await this.db.getPlayer(playerId);
-          const currentAmount = player.buildings[item.building_type] || 0;
-          await this.db.updateBuildings(playerId, item.building_type, currentAmount + item.amount);
-          await this.db.completeBuilding(item.id);
+      const buildingItem = buildingQueue[0];
 
-          // Notify player
-          this.io.to(playerId).emit('buildingComplete', {
-            buildingType: item.building_type,
-            amount: item.amount
-          });
+      if (buildingItem && buildingItem.completes_at <= now) {
+        const player = await this.db.getPlayer(playerId);
+        const currentAmount = player.buildings[buildingItem.building_type] || 0;
+        await this.db.updateBuildings(playerId, buildingItem.building_type, currentAmount + buildingItem.amount);
+        await this.db.completeBuilding(buildingItem.id);
 
-          await this.db.addMessage(playerId, `Construction complete: ${item.amount} ${item.building_type}`, 'success');
-        }
+        this.io.to(playerId).emit('buildingComplete', {
+          buildingType: buildingItem.building_type,
+          amount: buildingItem.amount
+        });
+
+        await this.db.addMessage(playerId, `Construction complete: ${buildingItem.amount} ${buildingItem.building_type}`, 'success');
+        this.io.to(playerId).emit('queueUpdate', { buildingQueue: await this.db.getBuildingQueue(playerId) });
       }
 
       // Process spell research
@@ -421,6 +424,11 @@ class GameEngine {
     const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
+    amount = Number.parseInt(amount, 10);
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return { success: false, error: 'Amount must be a positive integer' };
+    }
+
     const unit = UNIT_TYPES[unitType.toUpperCase()];
     if (!unit) return { success: false, error: 'Invalid unit type' };
 
@@ -463,8 +471,9 @@ class GameEngine {
       }
     }
 
-    const completesAt = Date.now() + (trainingTime * 1000);
-    await this.db.addToTrainingQueue(playerId, unitType, amount, completesAt);
+    const queueStartAt = await this.db.getTrainingQueueReadyAt(playerId, Date.now());
+    const completesAt = queueStartAt + (trainingTime * 1000);
+    await this.db.addToTrainingQueue(playerId, unitType, amount, queueStartAt, completesAt);
 
     return {
       success: true,
@@ -476,6 +485,11 @@ class GameEngine {
   async buildStructure(playerId, buildingType, amount = 1) {
     const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
+
+    amount = Number.parseInt(amount, 10);
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return { success: false, error: 'Amount must be a positive integer' };
+    }
 
     const building = BUILDING_TYPES[buildingType.toUpperCase()];
     if (!building) return { success: false, error: 'Invalid building type' };
@@ -506,14 +520,58 @@ class GameEngine {
       }
     }
 
-    const completesAt = Date.now() + (buildTime * 1000);
-    await this.db.addToBuildingQueue(playerId, buildingType, amount, completesAt);
+    const queueStartAt = await this.db.getBuildingQueueReadyAt(playerId, Date.now());
+    const completesAt = queueStartAt + (buildTime * 1000);
+    await this.db.addToBuildingQueue(playerId, buildingType, amount, queueStartAt, completesAt);
 
     return {
       success: true,
       completesAt,
       estimatedTime: Math.floor(buildTime)
     };
+  }
+
+
+  async disbandUnits(playerId, unitType, amount) {
+    const player = await this.db.getPlayer(playerId);
+    if (!player) return { success: false, error: 'Player not found' };
+
+    amount = Number.parseInt(amount, 10);
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return { success: false, error: 'Amount must be a positive integer' };
+    }
+
+    const unit = UNIT_TYPES[unitType.toUpperCase()];
+    if (!unit) return { success: false, error: 'Invalid unit type' };
+
+    const currentAmount = player.units[unitType] || 0;
+    if (currentAmount < amount) {
+      return { success: false, error: `You only have ${currentAmount} ${unitType}` };
+    }
+
+    await this.db.updateUnits(playerId, unitType, currentAmount - amount);
+    await this.db.addMessage(playerId, `You disbanded ${amount} ${unitType}.`, 'info');
+
+    return { success: true, unitType, amount };
+  }
+
+  async dismissHero(playerId, heroRecordId) {
+    const player = await this.db.getPlayer(playerId);
+    if (!player) return { success: false, error: 'Player not found' };
+
+    const numericHeroId = Number.parseInt(heroRecordId, 10);
+    if (!Number.isInteger(numericHeroId) || numericHeroId <= 0) {
+      return { success: false, error: 'Invalid hero id' };
+    }
+
+    const hero = (player.heroes || []).find((ownedHero) => ownedHero.id === numericHeroId);
+    if (!hero) return { success: false, error: 'Hero not found' };
+
+    await this.db.removePlayerHero(playerId, numericHeroId);
+    const heroName = HEROES[(hero.hero_id || '').toUpperCase()]?.name || hero.hero_id || 'Hero';
+    await this.db.addMessage(playerId, `${heroName} has been dismissed from your kingdom.`, 'info');
+
+    return { success: true, heroId: numericHeroId };
   }
 
   calculateSpellResearchTime(player, spell) {

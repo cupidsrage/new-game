@@ -502,6 +502,7 @@ const UNIT_TYPES = {
     populationCost: 0,
     trainingTime: 0,
     upkeepGoldPerSecond: 0.28,
+    upkeepManaPerSecond: 0.12,
     attack: 12,
     defense: 10,
     description: 'Magical beings summoned by spells'
@@ -514,6 +515,7 @@ const UNIT_TYPES = {
     populationCost: 0,
     trainingTime: 0,
     upkeepGoldPerSecond: 0.38,
+    upkeepManaPerSecond: 0.2,
     attack: 20,
     defense: 15,
     description: 'Fearsome creatures from the abyss'
@@ -526,6 +528,7 @@ const UNIT_TYPES = {
     populationCost: 0,
     trainingTime: 0,
     upkeepGoldPerSecond: 0.24,
+    upkeepManaPerSecond: 0.08,
     attack: 8,
     defense: 12,
     description: 'Risen corpses that never tire'
@@ -538,6 +541,7 @@ const UNIT_TYPES = {
     populationCost: 0,
     trainingTime: 0,
     upkeepGoldPerSecond: 1.5,
+    upkeepManaPerSecond: 0.75,
     attack: 50,
     defense: 40,
     description: 'Ancient dragons of immense power'

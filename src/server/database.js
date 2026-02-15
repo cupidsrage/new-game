@@ -332,8 +332,8 @@ class GameDatabase {
     );
   }
 
-  async addToTrainingQueue(playerId, unitType, amount, completesAt) {
-    await this.query('INSERT INTO training_queue (player_id, unit_type, amount, started_at, completes_at) VALUES ($1, $2, $3, $4, $5)', [playerId, unitType, amount, Date.now(), completesAt]);
+  async addToTrainingQueue(playerId, unitType, amount, startedAt, completesAt) {
+    await this.query('INSERT INTO training_queue (player_id, unit_type, amount, started_at, completes_at) VALUES ($1, $2, $3, $4, $5)', [playerId, unitType, amount, startedAt, completesAt]);
   }
 
   async addHeroToPlayer(playerId, heroId, level, stats) {
@@ -454,16 +454,28 @@ class GameDatabase {
     return (await this.query('SELECT * FROM training_queue WHERE player_id = $1 ORDER BY completes_at ASC', [playerId])).rows;
   }
 
+  async getTrainingQueueReadyAt(playerId, fallbackNow = Date.now()) {
+    const { rows } = await this.query('SELECT MAX(completes_at) AS ready_at FROM training_queue WHERE player_id = $1', [playerId]);
+    const readyAt = Number(rows[0]?.ready_at || 0);
+    return Math.max(fallbackNow, readyAt);
+  }
+
   async completeTraining(id) {
     return (await this.query('DELETE FROM training_queue WHERE id = $1 RETURNING *', [id])).rows[0];
   }
 
-  async addToBuildingQueue(playerId, buildingType, amount, completesAt) {
-    await this.query('INSERT INTO building_queue (player_id, building_type, amount, started_at, completes_at) VALUES ($1, $2, $3, $4, $5)', [playerId, buildingType, amount, Date.now(), completesAt]);
+  async addToBuildingQueue(playerId, buildingType, amount, startedAt, completesAt) {
+    await this.query('INSERT INTO building_queue (player_id, building_type, amount, started_at, completes_at) VALUES ($1, $2, $3, $4, $5)', [playerId, buildingType, amount, startedAt, completesAt]);
   }
 
   async getBuildingQueue(playerId) {
     return (await this.query('SELECT * FROM building_queue WHERE player_id = $1 ORDER BY completes_at ASC', [playerId])).rows;
+  }
+
+  async getBuildingQueueReadyAt(playerId, fallbackNow = Date.now()) {
+    const { rows } = await this.query('SELECT MAX(completes_at) AS ready_at FROM building_queue WHERE player_id = $1', [playerId]);
+    const readyAt = Number(rows[0]?.ready_at || 0);
+    return Math.max(fallbackNow, readyAt);
   }
 
   async completeBuilding(id) {
