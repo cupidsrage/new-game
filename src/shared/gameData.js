@@ -1837,160 +1837,137 @@ const HEROES = {
 };
 
 const ITEMS = {
-  // Weapons
-  SWORD_OF_FLAMES: {
-    id: 'sword_of_flames',
-    name: 'Sword of Eternal Flames',
-    type: 'weapon',
-    rarity: 'legendary',
-    goldCost: 10000,
-    stats: {
-      attack: 200,
-      spellPower: 50
-    },
-    description: 'A legendary blade wreathed in eternal fire'
-  },
-  STAFF_OF_POWER: {
-    id: 'staff_of_power',
-    name: 'Staff of Arcane Power',
-    type: 'weapon',
-    rarity: 'legendary',
-    goldCost: 12000,
-    stats: {
-      spellPower: 300,
-      manaRegen: 5
-    },
-    description: 'Amplifies magical abilities beyond mortal limits'
-  },
-  DAGGERS_OF_SHADOW: {
-    id: 'daggers_of_shadow',
-    name: 'Twin Daggers of Shadow',
-    type: 'weapon',
-    rarity: 'epic',
-    goldCost: 8000,
-    stats: {
-      attack: 150,
-      critChance: 0.25
-    },
-    description: 'Strike from the shadows with deadly precision'
-  },
-
-  // Armor
-  DRAGON_SCALE_ARMOR: {
-    id: 'dragon_scale_armor',
-    name: 'Dragon Scale Armor',
-    type: 'armor',
-    rarity: 'legendary',
-    goldCost: 15000,
-    stats: {
-      defense: 300,
-      health: 500
-    },
-    description: 'Forged from the scales of an ancient dragon'
-  },
-  ROBE_OF_ARCHMAGE: {
-    id: 'robe_of_archmage',
-    name: 'Robe of the Archmage',
-    type: 'armor',
-    rarity: 'legendary',
-    goldCost: 10000,
-    stats: {
-      defense: 100,
-      spellPower: 200,
-      manaRegen: 10
-    },
-    description: 'Worn by the greatest mages in history'
-  },
-
-  // Accessories
-  RING_OF_POWER: {
-    id: 'ring_of_power',
-    name: 'Ring of Supreme Power',
-    type: 'accessory',
-    rarity: 'legendary',
-    goldCost: 20000,
-    stats: {
-      attack: 100,
-      defense: 100,
-      spellPower: 100,
-      allResourceBonus: 0.25
-    },
-    description: 'The ultimate artifact of power'
-  },
-  AMULET_OF_IMMORTALITY: {
-    id: 'amulet_of_immortality',
-    name: 'Amulet of Immortality',
-    type: 'accessory',
-    rarity: 'legendary',
-    goldCost: 18000,
-    stats: {
-      health: 1000,
-      healthRegen: 10
-    },
-    description: 'Grants near-immortality to its wearer'
-  },
-  CROWN_OF_KINGS: {
-    id: 'crown_of_kings',
-    name: 'Crown of Kings',
-    type: 'accessory',
-    rarity: 'epic',
-    goldCost: 15000,
-    stats: {
-      populationBonus: 0.50,
-      goldBonus: 0.30,
-      leadership: 100
-    },
-    description: 'Symbol of ultimate authority and prosperity'
-  },
-  BOOTS_OF_SPEED: {
-    id: 'boots_of_speed',
-    name: 'Boots of Hermes',
-    type: 'accessory',
-    rarity: 'epic',
-    goldCost: 8000,
-    stats: {
-      actionSpeed: 0.50,
-      evasion: 0.20
-    },
-    description: 'Move and act with supernatural speed'
-  },
-
-  // Consumables
-  HEALTH_POTION: {
-    id: 'health_potion',
-    name: 'Greater Health Potion',
+  // Kingdom consumables inspired by classic Archmage-style utility items
+  RUNE_OF_PLENTY: {
+    id: 'rune_of_plenty',
+    name: 'Rune of Plenty',
     type: 'consumable',
     rarity: 'common',
-    goldCost: 500,
+    goldCost: 1200,
     effect: {
-      type: 'heal',
-      amount: 500
+      type: 'instant_resource',
+      gold: 2500,
+      mana: 0,
+      duration: 0
     },
-    description: 'Instantly restore 500 health'
+    description: 'Instantly grants 2,500 gold to your kingdom treasury'
   },
-  MANA_POTION: {
-    id: 'mana_potion',
-    name: 'Greater Mana Potion',
+  MANA_VIAL: {
+    id: 'mana_vial',
+    name: 'Mana Vial',
     type: 'consumable',
     rarity: 'common',
-    goldCost: 500,
+    goldCost: 1400,
     effect: {
-      type: 'restore_mana',
-      amount: 1000
+      type: 'instant_resource',
+      gold: 0,
+      mana: 2000,
+      duration: 0
     },
-    description: 'Instantly restore 1000 mana'
+    description: 'Instantly restores 2,000 mana for spellcasting'
   },
-  EXPERIENCE_SCROLL: {
-    id: 'experience_scroll',
-    name: 'Scroll of Experience',
+  BANNER_OF_RALLYING: {
+    id: 'banner_of_rallying',
+    name: 'Banner of Rallying',
     type: 'consumable',
     rarity: 'rare',
-    goldCost: 2000,
+    goldCost: 4500,
     effect: {
-      type: 'grant_exp',
-      amount: 5000
+      type: 'buff_offense',
+      multiplier: 1.25,
+      duration: 1800
     },
-    description: 'Grant 5000 experience to your hero'
+    description: 'Increases army attack power by 25% for 30 minutes'
+  },
+  WARDING_TOTEM: {
+    id: 'warding_totem',
+    name: 'Warding Totem',
+    type: 'consumable',
+    rarity: 'rare',
+    goldCost: 5000,
+    effect: {
+      type: 'buff_defense',
+      multiplier: 1.25,
+      duration: 1800
+    },
+    description: 'Increases defensive strength by 25% for 30 minutes'
+  },
+  PHIAL_OF_VIGOR: {
+    id: 'phial_of_vigor',
+    name: 'Phial of Vigor',
+    type: 'consumable',
+    rarity: 'rare',
+    goldCost: 3800,
+    effect: {
+      type: 'buff_speed',
+      multiplier: 1.35,
+      duration: 1200
+    },
+    description: 'Speeds up training and construction by 35% for 20 minutes'
+  },
+  CHARM_OF_PROSPERITY: {
+    id: 'charm_of_prosperity',
+    name: 'Charm of Prosperity',
+    type: 'consumable',
+    rarity: 'epic',
+    goldCost: 7600,
+    effect: {
+      type: 'buff_resource',
+      resource: 'gold',
+      multiplier: 1.5,
+      duration: 2400
+    },
+    description: 'Boosts gold production by 50% for 40 minutes'
+  },
+  ARCANE_FOCUS_CRYSTAL: {
+    id: 'arcane_focus_crystal',
+    name: 'Arcane Focus Crystal',
+    type: 'consumable',
+    rarity: 'epic',
+    goldCost: 8200,
+    effect: {
+      type: 'buff_resource',
+      resource: 'mana',
+      multiplier: 1.75,
+      duration: 2400
+    },
+    description: 'Boosts mana regeneration by 75% for 40 minutes'
+  },
+  AMULET_OF_CONCEALMENT: {
+    id: 'amulet_of_concealment',
+    name: 'Amulet of Concealment',
+    type: 'consumable',
+    rarity: 'epic',
+    goldCost: 9500,
+    effect: {
+      type: 'buff_stealth',
+      duration: 1800
+    },
+    description: 'Protects your kingdom from scouting and intel effects for 30 minutes'
+  },
+  SIGIL_OF_SANCTUARY: {
+    id: 'sigil_of_sanctuary',
+    name: 'Sigil of Sanctuary',
+    type: 'consumable',
+    rarity: 'legendary',
+    goldCost: 14000,
+    effect: {
+      type: 'buff_immunity',
+      duration: 600
+    },
+    description: 'Prevents incoming attacks for 10 minutes'
+  },
+  EMBERSTORM_RELIC: {
+    id: 'emberstorm_relic',
+    name: 'Emberstorm Relic',
+    type: 'consumable',
+    rarity: 'legendary',
+    goldCost: 12500,
+    effect: {
+      type: 'damage_units',
+      percentage: 0.08
+    },
+    description: 'Deals 8% damage to an enemy army when activated'
   }
 };
 

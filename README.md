@@ -39,9 +39,9 @@ A fully-featured real-time multiplayer strategy game inspired by Archmage, built
 - Fortified Walls - Increases defense
 - Marketplace - Boosts gold income
 
-### 💎 Items & Equipment
-- Legendary weapons and armor
-- Equipment system for heroes
+### 💎 Consumable Items
+- Kingdom-focused consumables players can use directly
+- Items for instant resource boosts, offense/defense buffs, stealth, and short sanctuaries
 - Black market hero auctions with player bidding
 - Heroes appear in the black market at random levels
 
