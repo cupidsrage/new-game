@@ -199,6 +199,7 @@ function connectToServer() {
     socket.on('heroInventoryUpdate', (heroes) => {
         player.heroes = heroes || [];
         renderBlackMarket();
+        renderHeroes();
     });
 
     socket.on('authError', (error) => {
@@ -546,43 +547,37 @@ function castSpell(spellId, targetPlayerId = null) {
 
 // Heroes tab
 function renderHeroes() {
-    const availableContainer = document.getElementById('availableHeroes');
     const yourContainer = document.getElementById('yourHeroes');
-    
-    availableContainer.innerHTML = '';
+    if (!yourContainer || !gameData || !gameData.heroes) return;
+
     yourContainer.innerHTML = '';
 
-    for (const [key, hero] of Object.entries(gameData.heroes)) {
+    const heroes = player?.heroes || [];
+    if (!heroes.length) {
+        yourContainer.innerHTML = '<p>You do not own any heroes yet. Win an auction in the market to recruit one.</p>';
+        return;
+    }
+
+    heroes.forEach((ownedHero) => {
+        const hero = Object.values(gameData.heroes).find((h) => h.id === ownedHero.hero_id);
+        if (!hero) return;
+
+        const upkeep = 200 * Math.max(1, Number(ownedHero.level) || 1);
+        const unlockedAbilities = hero.abilities.filter((ability) => (ability.unlockLevel || 1) <= ownedHero.level);
+
         const card = document.createElement('div');
         card.className = 'hero-card';
         card.innerHTML = `
             <h3>${hero.name}</h3>
             <p><strong>Class:</strong> ${hero.class}</p>
-            <p>${hero.description}</p>
-            <div class="hero-stats">
-                <div>Attack: ${hero.baseStats.attack}</div>
-                <div>Defense: ${hero.baseStats.defense}</div>
-                <div>Health: ${hero.baseStats.health}</div>
-            </div>
-            <div class="hero-abilities">
-                <strong>Abilities:</strong>
-                ${hero.abilities.map(ability => `
-                    <div class="ability">
-                        <strong>${ability.name}</strong> <span>(Unlocks at lvl ${ability.unlockLevel || 1})</span>
-                        <div>${ability.effect}</div>
-                    </div>
-                `).join('')}
-            </div>
-            <p style="margin-top: 1rem;"><strong>Cost:</strong> ${hero.goldCost} gold</p>
-            <p><strong>Upkeep:</strong> ${(hero.upkeepGoldPerSecond || 0).toFixed(2)} gold/s</p>
-            <button onclick="recruitHero('${hero.id}')">Recruit Hero</button>
+            <p><strong>Hero Level:</strong> ${ownedHero.level}</p>
+            <p><strong>Stats:</strong> ATK ${Math.floor(ownedHero.attack)} | DEF ${Math.floor(ownedHero.defense)} | HP ${Math.floor(ownedHero.max_health)}</p>
+            <p><strong>Upkeep:</strong> ${Math.floor(upkeep)} gold/s</p>
+            <p><strong>Unlocked Abilities:</strong></p>
+            ${unlockedAbilities.map((ability) => `<div class="ability">• ${ability.name}</div>`).join('') || '<div class="ability">None</div>'}
         `;
-        availableContainer.appendChild(card);
-    }
-}
-
-function recruitHero(heroId) {
-    showNotification('Heroes are only obtainable through Black Market bidding.', 'info');
+        yourContainer.appendChild(card);
+    });
 }
 
 function renderBlackMarket() {
