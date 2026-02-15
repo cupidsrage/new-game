@@ -616,8 +616,8 @@ const BUILDING_TYPES = {
     goldCost: 1800,
     landCost: 2,
     buildTime: 140,
-    researchSpeedBonus: 0.05,
-    description: 'Reduces spell research time by 5% per University owned'
+    researchTimeReductionMinutes: 15,
+    description: 'Reduces spell research time by 15 minutes per University owned'
   }
 };
 
