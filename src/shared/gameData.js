@@ -594,7 +594,7 @@ const HEROES = {
     id: 'warrior',
     name: 'Warlord Grimfang',
     class: 'Warrior',
-    goldCost: 5000,
+    goldCost: 1000000,
     upkeepGoldPerSecond: 2,
     description: 'Master of combat and military tactics',
     baseStats: {
@@ -630,7 +630,7 @@ const HEROES = {
     id: 'mage',
     name: 'Archmage Zarathus',
     class: 'Mage',
-    goldCost: 5000,
+    goldCost: 1000000,
     upkeepGoldPerSecond: 2,
     description: 'Supreme master of magical arts',
     baseStats: {
@@ -667,7 +667,7 @@ const HEROES = {
     id: 'rogue',
     name: 'Shadow Nightblade',
     class: 'Rogue',
-    goldCost: 5000,
+    goldCost: 1000000,
     upkeepGoldPerSecond: 2,
     description: 'Master of espionage and subterfuge',
     baseStats: {
@@ -703,7 +703,7 @@ const HEROES = {
     id: 'priest',
     name: 'High Priest Luminara',
     class: 'Priest',
-    goldCost: 5000,
+    goldCost: 1000000,
     upkeepGoldPerSecond: 2,
     description: 'Divine healer and protector',
     baseStats: {
@@ -739,7 +739,7 @@ const HEROES = {
     id: 'necromancer',
     name: 'Lord Mortis',
     class: 'Necromancer',
-    goldCost: 5000,
+    goldCost: 1000000,
     upkeepGoldPerSecond: 2,
     description: 'Master of death and the undead',
     baseStats: {
@@ -775,7 +775,7 @@ const HEROES = {
     id: 'ranger',
     name: 'Sylvan Huntmaster Kael',
     class: 'Ranger',
-    goldCost: 5500,
+    goldCost: 1200000,
     upkeepGoldPerSecond: 2.2,
     description: 'Tactical skirmisher commanding elite ranged formations',
     baseStats: {
@@ -811,7 +811,7 @@ const HEROES = {
     id: 'paladin',
     name: 'Lady Seraphine Dawnshield',
     class: 'Paladin',
-    goldCost: 6000,
+    goldCost: 1400000,
     upkeepGoldPerSecond: 2.4,
     description: 'Holy champion who inspires armies and shields allied troops',
     baseStats: {
@@ -848,7 +848,7 @@ const HEROES = {
     id: 'artificer',
     name: 'Master Artificer Voltren',
     class: 'Artificer',
-    goldCost: 6200,
+    goldCost: 1600000,
     upkeepGoldPerSecond: 2.5,
     description: 'Arcane engineer specializing in logistics and battlefield constructs',
     baseStats: {
