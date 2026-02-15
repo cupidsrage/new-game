@@ -364,22 +364,23 @@ function renderBuildingQueue(queue = buildingQueueData) {
     }
 
     buildingQueueData.forEach(item => {
-        const timeLeft = Math.max(0, item.completes_at - Date.now());
-        const progress = 100 - (timeLeft / (item.completes_at - item.started_at) * 100);
-        
         const div = document.createElement('div');
         div.className = 'queue-item';
+        div.dataset.startedAt = item.started_at;
+        div.dataset.completesAt = item.completes_at;
         div.innerHTML = `
             <div>
                 <strong>${item.amount}x ${item.building_type}</strong>
-                <div>Completes in: ${formatTime(timeLeft)}</div>
+                <div>Completes in: <span class="queue-time-left">--</span></div>
                 <div class="queue-progress">
-                    <div class="queue-progress-bar" style="width: ${progress}%"></div>
+                    <div class="queue-progress-bar"></div>
                 </div>
             </div>
         `;
         container.appendChild(div);
     });
+
+    updateQueueCountdowns(container);
 }
 
 // Military tab
@@ -481,22 +482,23 @@ function renderTrainingQueue(queue = trainingQueueData) {
     }
 
     trainingQueueData.forEach(item => {
-        const timeLeft = Math.max(0, item.completes_at - Date.now());
-        const progress = 100 - (timeLeft / (item.completes_at - item.started_at) * 100);
-        
         const div = document.createElement('div');
         div.className = 'queue-item';
+        div.dataset.startedAt = item.started_at;
+        div.dataset.completesAt = item.completes_at;
         div.innerHTML = `
             <div>
                 <strong>${item.amount}x ${item.unit_type}</strong>
-                <div>Completes in: ${formatTime(timeLeft)}</div>
+                <div>Completes in: <span class="queue-time-left">--</span></div>
                 <div class="queue-progress">
-                    <div class="queue-progress-bar" style="width: ${progress}%"></div>
+                    <div class="queue-progress-bar"></div>
                 </div>
             </div>
         `;
         container.appendChild(div);
     });
+
+    updateQueueCountdowns(container);
 }
 
 // Magic tab
@@ -517,14 +519,15 @@ const TARGETED_SPELLS = new Set([
 function getSpellResearchState(spellId) {
     const researchList = player?.spellResearch || [];
     const state = researchList.find(item => item.spell_id === spellId);
-    if (!state) return { researched: false, inProgress: false, remainingMs: 0 };
+    if (!state) return { researched: false, inProgress: false, remainingMs: 0, completesAt: null };
 
     if (state.completed) {
-        return { researched: true, inProgress: false, remainingMs: 0 };
+        return { researched: true, inProgress: false, remainingMs: 0, completesAt: null };
     }
 
-    const remainingMs = Math.max(0, (state.completes_at || 0) - Date.now());
-    return { researched: false, inProgress: remainingMs > 0, remainingMs };
+    const completesAt = state.completes_at || null;
+    const remainingMs = Math.max(0, (completesAt || 0) - Date.now());
+    return { researched: false, inProgress: remainingMs > 0, remainingMs, completesAt };
 }
 
 function renderSpells() {
@@ -541,7 +544,7 @@ function renderSpells() {
         if (research.researched) {
             actionButton = `<button onclick="castSpellPrompt('${spell.id}')">Cast Spell</button>`;
         } else if (research.inProgress) {
-            actionButton = `<button disabled>Researching (${formatTime(research.remainingMs)})</button>`;
+            actionButton = `<button disabled><span class="spell-research-timer" data-completes-at="${research.completesAt || ''}">Researching (${formatTime(research.remainingMs)})</span></button>`;
         }
 
         const card = document.createElement('div');
@@ -693,7 +696,7 @@ function renderBlackMarket() {
             <p><strong>Class:</strong> ${hero.class}</p>
             <p><strong>Hero Level:</strong> ${listing.hero_level}</p>
             <p><strong>Current Bid:</strong> ${Math.floor(listing.highest_bid || listing.starting_bid)} gold</p>
-            <p><strong>Ends In:</strong> ${formatTime((listing.timeLeftSeconds || 0) * 1000)}</p>
+            <p><strong>Ends In:</strong> <span class="market-time-left" data-ends-at="${Date.now() + ((listing.timeLeftSeconds || 0) * 1000)}">--</span></p>
             <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
                 <input type="number" id="bid_${listing.id}" min="${Math.ceil(minBid)}" value="${Math.ceil(minBid)}" style="width: 100px; padding: 0.4rem;">
                 <button onclick="placeHeroBid(${listing.id})">Bid</button>
@@ -701,6 +704,8 @@ function renderBlackMarket() {
         `;
         marketContainer.appendChild(card);
     });
+
+    updateMarketCountdowns();
 
     const heroes = player?.heroes || [];
     if (!heroes.length) {
@@ -865,17 +870,51 @@ function startQueueRefreshLoop() {
     if (queueRefreshTimer) return;
 
     queueRefreshTimer = setInterval(() => {
-        renderTrainingQueue();
-        renderBuildingQueue();
-
-        if (heroMarketListings.length > 0 && document.getElementById('marketTab')?.classList.contains('active')) {
-            renderBlackMarket();
-        }
-
-        if (document.getElementById('magicTab')?.classList.contains('active')) {
-            renderSpells();
-        }
+        updateQueueCountdowns(document.getElementById('trainingQueue'));
+        updateQueueCountdowns(document.getElementById('buildingQueue'));
+        updateMarketCountdowns();
+        updateSpellCountdowns();
     }, 1000);
+}
+
+function updateQueueCountdowns(container) {
+    if (!container) return;
+
+    container.querySelectorAll('.queue-item').forEach((item) => {
+        const startedAt = Number(item.dataset.startedAt) || 0;
+        const completesAt = Number(item.dataset.completesAt) || 0;
+        const totalTime = Math.max(1, completesAt - startedAt);
+        const timeLeft = Math.max(0, completesAt - Date.now());
+        const progress = Math.min(100, Math.max(0, 100 - ((timeLeft / totalTime) * 100)));
+
+        const timeLeftLabel = item.querySelector('.queue-time-left');
+        if (timeLeftLabel) {
+            timeLeftLabel.textContent = formatTime(timeLeft);
+        }
+
+        const progressBar = item.querySelector('.queue-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+        }
+    });
+}
+
+function updateMarketCountdowns() {
+    document.querySelectorAll('.market-time-left').forEach((timer) => {
+        const endsAt = Number(timer.dataset.endsAt) || 0;
+        const remainingMs = Math.max(0, endsAt - Date.now());
+        timer.textContent = formatTime(remainingMs);
+    });
+}
+
+function updateSpellCountdowns() {
+    document.querySelectorAll('.spell-research-timer').forEach((timer) => {
+        const completesAt = Number(timer.dataset.completesAt) || 0;
+        const remainingMs = Math.max(0, completesAt - Date.now());
+        timer.textContent = remainingMs > 0
+            ? `Researching (${formatTime(remainingMs)})`
+            : 'Researching (finishing...)';
+    });
 }
 
 // Utilities
