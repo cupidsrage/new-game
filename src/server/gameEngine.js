@@ -1,5 +1,7 @@
 const { SPELLS, UNIT_TYPES, BUILDING_TYPES, HEROES, ITEMS, GAME_CONFIG } = require('../shared/gameData');
 
+const OFFLINE_RESOURCE_CAP_MS = 24 * 60 * 60 * 1000;
+
 class GameEngine {
   constructor(database, io) {
     this.db = database;
@@ -35,40 +37,76 @@ class GameEngine {
     }, 5000);
   }
 
+  async applyResourceProgress(playerId, elapsedMs) {
+    if (elapsedMs <= 0) return null;
+
+    let player = await this.db.getPlayer(playerId);
+    if (!player) return null;
+
+    let production = this.calculateProduction(player);
+    const elapsedSeconds = elapsedMs / 1000;
+
+    if (player.gold + (production.gold * elapsedSeconds) < 0) {
+      const upkeepResolution = await this.resolveNegativeGold(player, production);
+      player = upkeepResolution.player;
+      production = upkeepResolution.production;
+    }
+
+    player.gold = Math.max(0, player.gold + (production.gold * elapsedSeconds));
+    player.mana = Math.max(0, player.mana + (production.mana * elapsedSeconds));
+    player.population = Math.max(0, player.population + (production.population * elapsedSeconds));
+
+    return { player, production };
+  }
+
+  async applyOfflineProgress(playerId) {
+    const player = await this.db.getPlayer(playerId);
+    if (!player) return;
+
+    const elapsedMs = Math.min(Date.now() - Number(player.last_active || 0), OFFLINE_RESOURCE_CAP_MS);
+    const progress = await this.applyResourceProgress(playerId, elapsedMs);
+    if (!progress) return;
+
+    await this.db.updatePlayerResources(
+      playerId,
+      progress.player.gold,
+      progress.player.mana,
+      progress.player.population,
+      progress.player.land,
+      progress.player.total_land,
+      false
+    );
+
+    await this.db.updateLastActive(playerId);
+  }
+
   async tick() {
     // Update resources for all active players
     for (const [playerId] of this.players) {
       try {
-        let player = await this.db.getPlayer(playerId);
-        if (!player) continue;
+        const progress = await this.applyResourceProgress(playerId, GAME_CONFIG.TICK_RATE);
+        if (!progress) continue;
 
-        let production = this.calculateProduction(player);
+        await this.db.updatePlayerResources(
+          playerId,
+          progress.player.gold,
+          progress.player.mana,
+          progress.player.population,
+          progress.player.land,
+          progress.player.total_land,
+          false
+        );
 
-        if (player.gold + production.gold < 0) {
-          const upkeepResolution = await this.resolveNegativeGold(player, production);
-          player = upkeepResolution.player;
-          production = upkeepResolution.production;
-        }
-
-        // Update resources
-        player.gold = Math.max(0, player.gold + production.gold);
-        player.mana = Math.max(0, player.mana + production.mana);
-        player.population = Math.max(0, player.population + production.population);
-
-        // Save to database
-        await this.db.updatePlayerResources(playerId, player.gold, player.mana, player.population, player.land, player.total_land);
-
-        // Emit update to client
         if (this.io) {
           this.io.to(playerId).emit('resourceUpdate', {
-            gold: Math.floor(player.gold),
-            mana: Math.floor(player.mana),
-            population: Math.floor(player.population),
-            land: player.land,
-            totalLand: player.total_land,
-            goldRate: production.gold,
-            manaRate: production.mana,
-            populationRate: production.population
+            gold: Math.floor(progress.player.gold),
+            mana: Math.floor(progress.player.mana),
+            population: Math.floor(progress.player.population),
+            land: progress.player.land,
+            totalLand: progress.player.total_land,
+            goldRate: progress.production.gold,
+            manaRate: progress.production.mana,
+            populationRate: progress.production.population
           });
         }
       } catch (error) {
@@ -238,7 +276,12 @@ class GameEngine {
     const now = Date.now();
 
     // Process one training stack at a time
-    for (const [playerId] of this.players) {
+    const queuePlayers = new Set(this.players.keys());
+    for (const queuedPlayerId of await this.db.getPlayersWithQueueActivity()) {
+      queuePlayers.add(queuedPlayerId);
+    }
+
+    for (const playerId of queuePlayers) {
       const trainingQueue = await this.db.getTrainingQueue(playerId);
       const trainingItem = trainingQueue[0];
 
@@ -296,6 +339,7 @@ class GameEngine {
   }
 
   async registerPlayer(playerId, socketId) {
+    await this.applyOfflineProgress(playerId);
     this.players.set(playerId, { socketId, lastUpdate: Date.now() });
     await this.ensureHeroMarketSupply();
     await this.emitHeroMarketUpdate();

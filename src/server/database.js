@@ -290,11 +290,23 @@ class GameDatabase {
     return player;
   }
 
-  async updatePlayerResources(playerId, gold, mana, population, land, totalLand = land) {
+  async updatePlayerResources(playerId, gold, mana, population, land, totalLand = land, updateLastActive = true) {
+    if (updateLastActive) {
+      await this.query(
+        `UPDATE players SET gold = $1, mana = $2, population = $3, land = $4, total_land = $5, last_active = $6 WHERE id = $7`,
+        [gold, mana, population, land, totalLand, Date.now(), playerId]
+      );
+      return;
+    }
+
     await this.query(
-      `UPDATE players SET gold = $1, mana = $2, population = $3, land = $4, total_land = $5, last_active = $6 WHERE id = $7`,
-      [gold, mana, population, land, totalLand, Date.now(), playerId]
+      `UPDATE players SET gold = $1, mana = $2, population = $3, land = $4, total_land = $5 WHERE id = $6`,
+      [gold, mana, population, land, totalLand, playerId]
     );
+  }
+
+  async updateLastActive(playerId, timestamp = Date.now()) {
+    await this.query('UPDATE players SET last_active = $1 WHERE id = $2', [timestamp, playerId]);
   }
 
   async incrementPlayerStats(playerId, statUpdates) {
@@ -452,6 +464,18 @@ class GameDatabase {
 
   async getTrainingQueue(playerId) {
     return (await this.query('SELECT * FROM training_queue WHERE player_id = $1 ORDER BY completes_at ASC', [playerId])).rows;
+  }
+
+  async getPlayersWithQueueActivity() {
+    return (await this.query(`
+      SELECT DISTINCT player_id FROM (
+        SELECT player_id FROM training_queue
+        UNION
+        SELECT player_id FROM building_queue
+        UNION
+        SELECT player_id FROM spell_research WHERE completed = FALSE
+      ) queue_players
+    `)).rows.map((row) => row.player_id);
   }
 
   async getTrainingQueueReadyAt(playerId, fallbackNow = Date.now()) {
