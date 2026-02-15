@@ -182,6 +182,23 @@ class GameEngine {
           await this.db.addMessage(playerId, `Construction complete: ${item.amount} ${item.building_type}`, 'success');
         }
       }
+
+      // Process spell research
+      const spellResearch = await this.db.getSpellResearch(playerId);
+      for (const research of spellResearch) {
+        if (!research.completed && research.completes_at <= now) {
+          const completed = await this.db.completeSpellResearch(research.id);
+          if (!completed) continue;
+
+          const spellName = Object.values(SPELLS).find((spell) => spell.id === completed.spell_id)?.name || completed.spell_id;
+          await this.db.addMessage(playerId, `Spell research complete: ${spellName}`, 'success');
+          this.io.to(playerId).emit('spellResearchComplete', {
+            spellId: completed.spell_id,
+            completesAt: completed.completes_at
+          });
+          this.io.to(playerId).emit('spellResearchUpdate', await this.db.getSpellResearch(playerId));
+        }
+      }
     }
   }
 
@@ -409,12 +426,59 @@ class GameEngine {
     };
   }
 
+  calculateSpellResearchTime(player, spell) {
+    const baseResearchDays = Math.max(1, Number(spell.researchDays) || 1);
+    const universityCount = player.buildings.university || 0;
+    const universityBonus = BUILDING_TYPES.UNIVERSITY?.researchSpeedBonus || 0;
+    const speedMultiplier = Math.max(0.1, 1 + (universityCount * universityBonus));
+    return (baseResearchDays * 24 * 60 * 60) / speedMultiplier;
+  }
+
+  async startSpellResearch(playerId, spellId) {
+    const player = await this.db.getPlayer(playerId);
+    if (!player) return { success: false, error: 'Player not found' };
+
+    const spell = SPELLS[spellId.toUpperCase()];
+    if (!spell) return { success: false, error: 'Invalid spell' };
+
+    const existingResearch = await this.db.getSpellResearch(playerId);
+    const existing = existingResearch.find((item) => item.spell_id === spell.id);
+    if (existing?.completed) {
+      return { success: false, error: 'Spell already researched' };
+    }
+    if (existing && !existing.completed && existing.completes_at > Date.now()) {
+      const remainingSeconds = Math.ceil((existing.completes_at - Date.now()) / 1000);
+      return { success: false, error: `Research already in progress (${remainingSeconds}s remaining)` };
+    }
+
+    const researchSeconds = this.calculateSpellResearchTime(player, spell);
+    const completesAt = Date.now() + (researchSeconds * 1000);
+    await this.db.startSpellResearch(playerId, spell.id, completesAt);
+
+    return {
+      success: true,
+      spellId: spell.id,
+      completesAt,
+      estimatedResearchTime: Math.floor(researchSeconds)
+    };
+  }
+
   async castSpell(playerId, spellId, targetPlayerId = null) {
     const player = await this.db.getPlayer(playerId);
     if (!player) return { success: false, error: 'Player not found' };
 
     const spell = SPELLS[spellId.toUpperCase()];
     if (!spell) return { success: false, error: 'Invalid spell' };
+
+    const spellResearch = await this.db.getSpellResearch(playerId);
+    const researchedSpell = spellResearch.find((item) => item.spell_id === spell.id);
+    if (!researchedSpell || !researchedSpell.completed) {
+      if (researchedSpell && researchedSpell.completes_at > Date.now()) {
+        const remainingSeconds = Math.ceil((researchedSpell.completes_at - Date.now()) / 1000);
+        return { success: false, error: `Spell research in progress (${remainingSeconds}s remaining)` };
+      }
+      return { success: false, error: 'Spell not researched yet' };
+    }
 
     // Check mana
     if (player.mana < spell.manaCost) {

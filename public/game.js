@@ -116,6 +116,11 @@ function connectToServer() {
         renderBuildingQueue(data.buildingQueue);
         renderMessages(data.messages);
 
+        if (data.spellResearch) {
+            player.spellResearch = data.spellResearch;
+            renderSpells();
+        }
+
         if (data.productionRates) {
             updateResourceRates(data.productionRates);
         }
@@ -200,6 +205,17 @@ function connectToServer() {
         player.heroes = heroes || [];
         renderBlackMarket();
         renderHeroes();
+    });
+
+    socket.on('spellResearchUpdate', (research) => {
+        player.spellResearch = research || [];
+        renderSpells();
+    });
+
+    socket.on('spellResearchComplete', ({ spellId }) => {
+        const spellName = Object.values(gameData?.spells || {}).find((spell) => spell.id === spellId)?.name || spellId;
+        showNotification(`Research complete: ${spellName}`, 'success');
+        renderSpells();
     });
 
     socket.on('authError', (error) => {
@@ -468,13 +484,36 @@ const TARGETED_SPELLS = new Set([
     'summon_dragon'
 ]);
 
+function getSpellResearchState(spellId) {
+    const researchList = player?.spellResearch || [];
+    const state = researchList.find(item => item.spell_id === spellId);
+    if (!state) return { researched: false, inProgress: false, remainingMs: 0 };
+
+    if (state.completed) {
+        return { researched: true, inProgress: false, remainingMs: 0 };
+    }
+
+    const remainingMs = Math.max(0, (state.completes_at || 0) - Date.now());
+    return { researched: false, inProgress: remainingMs > 0, remainingMs };
+}
+
 function renderSpells() {
     const container = document.getElementById('spellsList');
     container.innerHTML = '';
 
     for (const [key, spell] of Object.entries(gameData.spells)) {
         if (currentSpellFilter !== 'all' && spell.school !== currentSpellFilter) continue;
-        
+
+        const research = getSpellResearchState(spell.id);
+        const researchDays = Math.max(1, Number(spell.researchDays) || 1);
+        let actionButton = `<button onclick="researchSpell('${spell.id}')">Research Spell</button>`;
+
+        if (research.researched) {
+            actionButton = `<button onclick="castSpellPrompt('${spell.id}')">Cast Spell</button>`;
+        } else if (research.inProgress) {
+            actionButton = `<button disabled>Researching (${formatTime(research.remainingMs)})</button>`;
+        }
+
         const card = document.createElement('div');
         card.className = 'spell-card';
         card.innerHTML = `
@@ -483,7 +522,8 @@ function renderSpells() {
             <p>${spell.description}</p>
             <p><strong>Mana Cost:</strong> ${spell.manaCost}</p>
             <p><strong>Cooldown:</strong> ${formatTime(spell.cooldown * 1000)}</p>
-            <button onclick="castSpellPrompt('${spell.id}')">Cast Spell</button>
+            <p><strong>Research Time:</strong> ${researchDays} day${researchDays === 1 ? '' : 's'}</p>
+            ${actionButton}
         `;
         container.appendChild(card);
     }
@@ -500,6 +540,19 @@ function filterSpells(school, triggerElement = null) {
     }
     
     renderSpells();
+}
+
+function researchSpell(spellId) {
+    socket.emit('researchSpell', { spellId });
+
+    socket.once('researchSpellResult', (result) => {
+        if (result.success) {
+            showNotification(`Research started. Completes in ${formatTime(result.estimatedResearchTime * 1000)}`, 'success');
+            socket.emit('getMessages');
+        } else {
+            showNotification(result.error, 'danger');
+        }
+    });
 }
 
 function castSpellPrompt(spellId) {

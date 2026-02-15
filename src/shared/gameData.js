@@ -22,6 +22,7 @@ const SPELLS = {
     name: 'Fireball',
     school: SPELL_SCHOOLS.COMBAT,
     manaCost: 500,
+    researchDays: 1,
     cooldown: 300, // 5 minutes in seconds
     description: 'Destroy enemy units with magical fire',
     effect: (caster, target) => ({
@@ -36,6 +37,7 @@ const SPELLS = {
     name: 'Lightning Storm',
     school: SPELL_SCHOOLS.COMBAT,
     manaCost: 1200,
+    researchDays: 2,
     cooldown: 600,
     description: 'Unleash devastating lightning on enemy forces',
     effect: (caster, target) => ({
@@ -50,6 +52,7 @@ const SPELLS = {
     name: 'Meteor Strike',
     school: SPELL_SCHOOLS.COMBAT,
     manaCost: 2500,
+    researchDays: 3,
     cooldown: 1200,
     description: 'Call down meteors to devastate enemy armies and buildings',
     effect: (caster, target) => ({
@@ -65,6 +68,7 @@ const SPELLS = {
     name: 'Plague',
     school: SPELL_SCHOOLS.COMBAT,
     manaCost: 1800,
+    researchDays: 2,
     cooldown: 900,
     description: 'Spread disease through enemy population',
     effect: (caster, target) => ({
@@ -81,6 +85,7 @@ const SPELLS = {
     name: 'Prosperity',
     school: SPELL_SCHOOLS.ECONOMIC,
     manaCost: 800,
+    researchDays: 1,
     cooldown: 600,
     description: 'Increase gold production for 1 hour',
     effect: (caster) => ({
@@ -97,6 +102,7 @@ const SPELLS = {
     name: 'Mana Surge',
     school: SPELL_SCHOOLS.ECONOMIC,
     manaCost: 600,
+    researchDays: 1,
     cooldown: 600,
     description: 'Increase mana regeneration for 1 hour',
     effect: (caster) => ({
@@ -113,6 +119,7 @@ const SPELLS = {
     name: 'Transmutation',
     school: SPELL_SCHOOLS.ECONOMIC,
     manaCost: 1500,
+    researchDays: 2,
     cooldown: 1800,
     description: 'Convert mana into gold',
     effect: (caster) => ({
@@ -130,6 +137,7 @@ const SPELLS = {
     name: 'Harvest Blessing',
     school: SPELL_SCHOOLS.ECONOMIC,
     manaCost: 1000,
+    researchDays: 2,
     cooldown: 900,
     description: 'Instantly gain resources based on land owned',
     effect: (caster) => ({
@@ -147,6 +155,7 @@ const SPELLS = {
     name: 'Clairvoyance',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 400,
+    researchDays: 1,
     cooldown: 300,
     description: 'Reveal detailed information about target player',
     effect: (caster, target) => ({
@@ -160,6 +169,7 @@ const SPELLS = {
     name: 'Teleport',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 2000,
+    researchDays: 3,
     cooldown: 1800,
     description: 'Instantly move your army to attack a distant target',
     effect: (caster, target) => ({
@@ -173,6 +183,7 @@ const SPELLS = {
     name: 'Time Warp',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 3000,
+    researchDays: 4,
     cooldown: 2400,
     description: 'Speed up all training and construction by 200% for 30 minutes',
     effect: (caster) => ({
@@ -188,6 +199,7 @@ const SPELLS = {
     name: 'Invisibility',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 1500,
+    researchDays: 2,
     cooldown: 1200,
     description: 'Hide your kingdom from spying spells for 2 hours',
     effect: (caster) => ({
@@ -204,6 +216,7 @@ const SPELLS = {
     name: 'Fortification',
     school: SPELL_SCHOOLS.ENCHANTMENT,
     manaCost: 1200,
+    researchDays: 2,
     cooldown: 1200,
     description: 'Increase defensive strength for 2 hours',
     effect: (caster) => ({
@@ -219,6 +232,7 @@ const SPELLS = {
     name: 'Bloodlust',
     school: SPELL_SCHOOLS.ENCHANTMENT,
     manaCost: 1000,
+    researchDays: 2,
     cooldown: 900,
     description: 'Increase offensive power for 1 hour',
     effect: (caster) => ({
@@ -234,6 +248,7 @@ const SPELLS = {
     name: 'Sanctuary',
     school: SPELL_SCHOOLS.ENCHANTMENT,
     manaCost: 2500,
+    researchDays: 3,
     cooldown: 3600,
     description: 'Make your kingdom immune to attacks for 15 minutes',
     effect: (caster) => ({
@@ -248,6 +263,7 @@ const SPELLS = {
     name: 'Regeneration',
     school: SPELL_SCHOOLS.ENCHANTMENT,
     manaCost: 800,
+    researchDays: 1,
     cooldown: 1200,
     description: 'Heal damaged units over time',
     effect: (caster) => ({
@@ -265,6 +281,7 @@ const SPELLS = {
     name: 'Summon Elementals',
     school: SPELL_SCHOOLS.SUMMONING,
     manaCost: 1500,
+    researchDays: 2,
     cooldown: 1200,
     description: 'Summon powerful elemental warriors',
     effect: (caster) => ({
@@ -280,6 +297,7 @@ const SPELLS = {
     name: 'Summon Demons',
     school: SPELL_SCHOOLS.SUMMONING,
     manaCost: 2200,
+    researchDays: 3,
     cooldown: 1800,
     description: 'Summon fearsome demons from the abyss',
     effect: (caster) => ({
@@ -295,6 +313,7 @@ const SPELLS = {
     name: 'Raise Undead',
     school: SPELL_SCHOOLS.SUMMONING,
     manaCost: 1000,
+    researchDays: 2,
     cooldown: 900,
     description: 'Raise the dead to serve you',
     effect: (caster) => ({
@@ -310,6 +329,7 @@ const SPELLS = {
     name: 'Summon Dragon',
     school: SPELL_SCHOOLS.SUMMONING,
     manaCost: 5000,
+    researchDays: 5,
     cooldown: 3600,
     description: 'Summon an ancient dragon to devastate your enemies',
     effect: (caster, target) => ({
@@ -326,6 +346,7 @@ const SPELLS = {
     name: 'Curse of Weakness',
     school: SPELL_SCHOOLS.COMBAT,
     manaCost: 900,
+    researchDays: 2,
     cooldown: 1200,
     description: 'Reduce enemy offensive power',
     effect: (caster, target) => ({
@@ -341,6 +362,7 @@ const SPELLS = {
     name: 'Confusion',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 700,
+    researchDays: 1,
     cooldown: 600,
     description: 'Slow down enemy production',
     effect: (caster, target) => ({
@@ -356,6 +378,7 @@ const SPELLS = {
     name: 'Steal Mana',
     school: SPELL_SCHOOLS.STRATEGIC,
     manaCost: 500,
+    researchDays: 1,
     cooldown: 600,
     description: 'Drain mana from target and add to your own',
     effect: (caster, target) => ({
@@ -586,6 +609,15 @@ const BUILDING_TYPES = {
     goldPerSecond: 3,
     tradeBonus: 0.15,
     description: 'Increases gold income and trade efficiency'
+  },
+  UNIVERSITY: {
+    id: 'university',
+    name: 'University',
+    goldCost: 1800,
+    landCost: 2,
+    buildTime: 140,
+    researchSpeedBonus: 0.05,
+    description: 'Reduces spell research time by 5% per University owned'
   }
 };
 
